@@ -6,8 +6,8 @@ It supports 2.4GHz WiFi and BLE 5, integrates large-capacity Flash and PSRAM, an
 which can smoothly run GUI interface programs such as LVGL; 
 it combines multiple peripheral interfaces (such as CAN, I2C and RS485 interfaces) to quickly develop ESP32-S3 HMI and other applications.
 
-- [Purchase Link](https://www.waveshare.com/esp32-s3-touch-lcd-7B.htm)
-- [Documentation](https://docs.waveshare.com/ESP32-S3-Touch-LCD-7B)
+- [Purchase Link](https://www.waveshare.com/product/esp32-s3-lcd-7b.htm)
+- [Documentation](https://docs.waveshare.net/ESP32-S3-Touch-LCD-7B)
 
 ![Product Image](./assets/Product-1.webp)
 
