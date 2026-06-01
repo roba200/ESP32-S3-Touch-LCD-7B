@@ -1,77 +1,33 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-| Supported LCD Controller    | ST7262 |
-| ----------------------------| -------|
+# 08_Touch
 
-| Supported TOUCH Controller    | GT911 |
-| ----------------------------| -------|
+## 功能说明
 
-## How to use the example
+本示例演示 GT911 触摸驱动与双缓冲显示。程序最多同时跟踪 5 个触点，并在屏幕上用不同颜色的圆形标出各触点位置。
 
-## ESP-IDF Required
+## 前置条件
 
-### Hardware Required
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+## 构建与烧录
 
-### Hardware Connection
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-The connection between ESP Board and the LCD is as follows:
+## 运行现象
 
-```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                   PCLK+--------------+PCLK               |
-|                       |              |                   |
-|             DATA[15:0]+--------------+DATA[15:0]         |
-|                       |              |                   |
-|                  HSYNC+--------------+HSYNC              |
-|                       |              |                   |
-|                  VSYNC+--------------+VSYNC              |
-|                       |              |                   |
-|                     DE+--------------+DE                 |
-|                       |              |                   |
-|               BK_LIGHT+--------------+BLK                |
-|                       |              |                   |
-       ESP Board                             TOUCH  
-+-----------------------+              +-------------------+
-|                    GND+--------------+GND                |
-|                       |              |                   |
-|                    3V3+--------------+VCC                |
-|                       |              |                   |
-|                  GPIO8+--------------+SDA                |
-|                       |              |                   |
-|                  GPIO9+--------------+SCL                |
-|                       |              |                   |
-+-----------------------+              |                   |
-       IO EXTENSION.EXIO2+--------------+DISP_EN            |
-|                       |              |                   |
-       IO EXTENSION.EXIO1+--------------+TP_RST             |
-|                       |              |                   |
-                                       +-------------------+
-```
+- 屏幕初始化后显示白色背景
+- 手指触摸屏幕时，会在对应位置显示彩色圆点
+- 最多支持 5 点同时触摸
 
-* Performs a five-point touch test and demonstrates basic usage of double buffering.
+## 说明
 
-### Configure the Project
+- 本示例通过双缓冲降低撕裂现象
+- 触点抬起后，对应标记会被清除
 
-### Build and Flash
+## 参考
 
-Run `idf.py set-target esp32s3` to select the target chip.
-
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
-
-The first time you run `idf.py` for the example will cost extra time.
-
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>

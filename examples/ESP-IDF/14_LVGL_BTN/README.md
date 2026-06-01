@@ -1,82 +1,30 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-| Supported LCD Controller    | ST7262 |
-| ----------------------------| -------|
+# 14_LVGL_BTN
 
-| Supported TOUCH Controller    | GT911 |
-| ----------------------------| -------|
-## How to use the example
+## 功能说明
 
-## ESP-IDF Required
+本示例使用 LVGL 创建一个按钮。点击屏幕中的按钮后，程序会翻转板载 LED 的状态。
 
-### Hardware Required
+## 前置条件
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
 
-### Hardware Connection
+板载 LED 使用 `GPIO6`。
 
-The connection between ESP Board and the LCD is as follows:
+## 构建与烧录
 
-```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                   PCLK+--------------+PCLK               |
-|                       |              |                   |
-|             DATA[15:0]+--------------+DATA[15:0]         |
-|                       |              |                   |
-|                  HSYNC+--------------+HSYNC              |
-|                       |              |                   |
-|                  VSYNC+--------------+VSYNC              |
-|                       |              |                   |
-|                     DE+--------------+DE                 |
-|                       |              |                   |
-|               BK_LIGHT+--------------+BLK                |
-       ESP Board                             TOUCH  
-+-----------------------+              +-------------------+
-|                    GND+--------------+GND                |
-|                       |              |                   |
-|                    3V3+--------------+VCC                |
-|                       |              |                   |
-|                  GPIO8+--------------+SDA                |
-|                       |              |                   |
-|                  GPIO9+--------------+SCL                |
-|                       |              |                   |
-       ESP Board                                LED
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                    AD +--------------+LED                |
-+-----------------------+              |                   |
-|                       |              |                   |
-       IO EXTENSION.EXIO1+--------------+TP_RST            |
-|                       |              |                   |
-       IO EXTENSION.EXIO2+--------------+DISP_EN           |          
-                                       +-------------------+
-```
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-* Create a button using LVGL to control an external LED
+## 运行现象
 
-### Configure the Project
+- 屏幕中央显示一个名为 `Button` 的 LVGL 按钮
+- 触摸该按钮时，板载 LED 在亮和灭之间切换
 
-### Build and Flash
+## 参考
 
-Run `idf.py set-target esp32s3` to select the target chip.
-
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
-
-The first time you run `idf.py` for the example will cost extra time.
-
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>
+- LVGL 文档：<https://docs.lvgl.io/>

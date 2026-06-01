@@ -1,55 +1,35 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-| Supported LCD Controller    | ST7262 |
-| ----------------------------| -------|
+# 07_SD
 
-## How to use the example
+## 功能说明
 
-## ESP-IDF Required
+本示例演示 Micro SD 卡挂载、容量读取和卸载流程。程序在串口输出存储卡信息，并在 LCD 上显示总容量和可用容量。
 
-### Hardware Required
+## 前置条件
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
+- 已插入可正常识别的 Micro SD 卡
 
-### Hardware Connection
+## 构建与烧录
 
-The connection between ESP Board and the LCD is as follows:
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-```
-       ESP Board                              SD Card
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                 GPIO11+--------------+CMD                |
-|                       |              |                   |
-|                 GPIO12+--------------+CLK                |
-|                       |              |                   |
-|                 GPIO13+--------------+D0                 |
-+-----------------------+              |                   |
-            IO EXTENSIO.EXIO4+--------------+SD_CS              |
-                                       |                   |
-                                       +-------------------+
-```
+## 运行现象
 
-* Mount an SD card, output related parameters via serial,unmount the SD card, and display memory information on the screen.
+- LCD 显示 `SD TEST`
+- 挂载成功时，屏幕显示 `SD Card OK!`，并显示总容量与可用容量
+- 串口输出 SD 卡参数，随后卸载文件系统
+- 挂载失败时，屏幕显示 `SD Card Fail!`
 
-### Configure the Project
+## 说明
 
-### Build and Flash
+- 本示例在读取信息后会主动卸载文件系统
+- 建议使用已格式化的存储卡进行测试
 
-Run `idf.py set-target esp32s3` to select the target chip.
+## 参考
 
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
-
-The first time you run `idf.py` for the example will cost extra time.
-
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>

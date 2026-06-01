@@ -1,64 +1,34 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-| Supported LCD Controller    | ST7262 |
-| ----------------------------| -------|
+# 10_WIFI_SCAN
 
-## How to use the example
+## 功能说明
 
-## ESP-IDF Required
+本示例扫描周围的 Wi-Fi 接入点，并将扫描到的 SSID 显示在 LCD 右侧区域。
 
-### Hardware Required
+## 前置条件
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
+- 测试环境中存在可扫描到的 2.4 GHz Wi-Fi 网络
 
-### Hardware Connection
+## 构建与烧录
 
-The connection between ESP Board and the LCD is as follows:
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                   PCLK+--------------+PCLK               |
-|                       |              |                   |
-|             DATA[15:0]+--------------+DATA[15:0]         |
-|                       |              |                   |
-|                  HSYNC+--------------+HSYNC              |
-|                       |              |                   |
-|                  VSYNC+--------------+VSYNC              |
-|                       |              |                   |
-|                     DE+--------------+DE                 |
-|                       |              |                   |
-|               BK_LIGHT+--------------+BLK                |
-+-----------------------+              |                   |
-       IO EXTENSION.EXIO2+--------------+DISP_EN            |
-                                       |                   |
-                                       +-------------------+
-```
+## 运行现象
 
-* This example scans for nearby Wi-Fi signals and displays the Wi-Fi names (SSIDs) on the right side of the LCD screen.
+- 屏幕左侧显示示例标题
+- 屏幕右侧先显示 `Scanning now...`
+- 扫描完成后，在右侧列表中显示扫描到的 SSID
 
-*使用汉字的朋友需要注意，如果用vs code打开，需要切换编码方式，修改成GB2312才能正常显示
-*Just use the characters and ignore the Chinese characters above.
+## 说明
 
-### Configure the Project
+- 当前实现会跳过包含非 ASCII 字符的 SSID，因此中文名称不会显示在列表中
+- 扫描结果数量受 `DEFAULT_SCAN_LIST_SIZE` 限制
 
-### Build and Flash
+## 参考
 
-Run `idf.py set-target esp32s3` to select the target chip.
-
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
-
-The first time you run `idf.py` for the example will cost extra time.
-
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>

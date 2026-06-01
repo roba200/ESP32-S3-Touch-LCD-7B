@@ -1,47 +1,29 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-## How to use the example
+# 03_I2C
 
-## ESP-IDF Required
+## 功能说明
 
-### Hardware Required
+本示例演示开发板内部 I2C 外设访问流程。程序初始化 I2C 总线和 CH422G I/O 扩展芯片，并通过 `IO_EXTENSION_IO_2` 周期性开关 LCD 背光。
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+## 前置条件
 
-### Hardware Connection
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
 
-The connection between ESP Board and the LED is as follows:
+示例使用板载 I2C 设备，无需外接传感器。
 
-```
-       ESP Board                               CH422G
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                 GPIO8 +--------------+SDA                |
-|                       |              |                   |
-|                 GPIO9 +--------------+SCL                |
-+-----------------------+               +-------------------+
-```
+## 构建与烧录
 
-* This example implements I2C communication to control CH422G to switch LCD backlight
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-### Configure the Project
+## 运行现象
 
-### Build and Flash
+- LCD 背光按 500 ms 的间隔亮灭切换
+- 该过程用于验证 I2C 总线与 I/O 扩展芯片通信正常
 
-Run `idf.py set-target esp32s3` to select the target chip.
+## 参考
 
-Run `idf.py -p PORT build flash` to build, flash.
-
-The first time you run `idf.py` for the example will cost extra time.
-
-
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>

@@ -1,65 +1,41 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-| Supported LCD Controller    | ST7262 |
-| ----------------------------| -------|
+# 12_WIFI_AP
 
-## How to use the example
+## 功能说明
 
-## ESP-IDF Required
+本示例将开发板配置为 SoftAP。设备接入后，LCD 会显示当前连接数量以及各终端的 MAC 地址。
 
-### Hardware Required
+## 前置条件
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
+- 具备可连接该热点的手机或电脑
 
-### Hardware Connection
+## 配置项
 
-The connection between ESP Board and the LCD is as follows:
+请按需修改 `main/main.c` 中的以下宏：
 
-```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                   PCLK+--------------+PCLK               |
-|                       |              |                   |
-|             DATA[15:0]+--------------+DATA[15:0]         |
-|                       |              |                   |
-|                  HSYNC+--------------+HSYNC              |
-|                       |              |                   |
-|                  VSYNC+--------------+VSYNC              |
-|                       |              |                   |
-|                     DE+--------------+DE                 |
-|                       |              |                   |
-|               BK_LIGHT+--------------+BLK                |
-+-----------------------+              |                   |
-       IO EXTENSION_Init.EXIO2+--------------+DISP_EN      |
-                                       |                   |
-                                       +-------------------+
-```
+- `USER_SSID`：热点名称，默认值为 `ESP32-S3-Touch-LCD-7B`
+- `USER_PASS`：热点密码，默认值为 `66668888`
 
-* Create an Access Point (AP), and when devices connect, 
-* display their MAC addresses on the screen.
+## 构建与烧录
 
-*使用汉字的朋友需要注意，如果用vs code打开，需要切换编码方式，修改成GB2312才能正常显示
-*Just use the characters and ignore the Chinese characters above.
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-### Configure the Project
+## 运行现象
 
-### Build and Flash
+- 启动后，开发板创建一个 Wi-Fi 热点
+- LCD 初始显示 `Connected: 0`
+- 有终端接入或断开时，屏幕会刷新连接数量与已连接终端的 MAC 地址
 
-Run `idf.py set-target esp32s3` to select the target chip.
+## 说明
 
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
+- 当前配置最多允许 5 个终端连接
+- 当密码为空字符串时，热点会按开放网络方式启动
 
-The first time you run `idf.py` for the example will cost extra time.
+## 参考
 
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>

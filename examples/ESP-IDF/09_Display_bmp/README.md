@@ -1,90 +1,38 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-| Supported LCD Controller    | ST7262 |
-| ----------------------------| -------|
+# 09_Display_bmp
 
-| Supported TOUCH Controller    | GT911 |
-| ----------------------------| -------|
-## How to use the example
+## 功能说明
 
-## ESP-IDF Required
+本示例从 Micro SD 卡中查找 `.bmp` 文件，并在 LCD 上显示。触摸屏幕中的左右箭头区域可切换上一张或下一张图片。
 
-### Hardware Required
+## 前置条件
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
+- 已插入 Micro SD 卡
+- 已将待显示的 `.bmp` 文件复制到存储卡挂载目录
 
-### Hardware Connection
+仓库中的 `pic/` 目录提供了测试图片，可先复制到存储卡后再运行示例。
 
-The connection between ESP Board and the LCD is as follows:
+## 构建与烧录
 
-```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                   PCLK+--------------+PCLK               |
-|                       |              |                   |
-|             DATA[15:0]+--------------+DATA[15:0]         |
-|                       |              |                   |
-|                  HSYNC+--------------+HSYNC              |
-|                       |              |                   |
-|                  VSYNC+--------------+VSYNC              |
-|                       |              |                   |
-|                     DE+--------------+DE                 |
-|                       |              |                   |
-|               BK_LIGHT+--------------+BLK                |
-       ESP Board                             TOUCH  
-+-----------------------+              +-------------------+
-|                    GND+--------------+GND                |
-|                       |              |                   |
-|                    3V3+--------------+VCC                |
-|                       |              |                   |
-|                  GPIO8+--------------+SDA                |
-|                       |              |                   |
-|                  GPIO9+--------------+SCL                |
-|                       |              |                   |
-       ESP Board                              SD Card
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                 GPIO11+--------------+CMD                |
-|                       |              |                   |
-|                 GPIO12+--------------+CLK                |
-|                       |              |                   |
-|                 GPIO13+--------------+D0                 |
-+-----------------------+              |                   |
-|                       |              |                   |
-       IO EXTENSION.EXIO1+--------------+TP_RST             |
-|                       |              |                   |
-       IO EXTENSION.EXIO2+--------------+DISP_EN            |
-                                          |                   |
-       IO EXTENSION.EXIO4+--------------+SD_CS              |
-            
-                                       +-------------------+
-```
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-* Read BMP files from the SD card and display on the screen.
-* Use the touchscreen to switch between images.
+## 运行现象
 
-### Configure the Project
+- SD 卡初始化成功后，屏幕提示可以开始切换图片
+- 未找到 `.bmp` 文件时，屏幕显示对应提示
+- 触摸左侧箭头区域显示上一张图片
+- 触摸右侧箭头区域显示下一张图片
 
-### Build and Flash
+## 说明
 
-Run `idf.py set-target esp32s3` to select the target chip.
+- 程序只会枚举后缀名为 `.bmp` 的文件
+- SD 卡初始化失败时，示例直接停止在错误提示界面
 
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
+## 参考
 
-The first time you run `idf.py` for the example will cost extra time.
-
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>

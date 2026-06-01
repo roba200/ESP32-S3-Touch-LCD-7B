@@ -1,64 +1,32 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-| Supported LCD Controller    | ST7262 |
-| ----------------------------| -------|
+# 06_LCD
 
-## How to use the example
+## 功能说明
 
-## ESP-IDF Required
+本示例演示 RGB LCD 的基础绘图流程。程序会依次显示颜色条、点线矩形圆形、英文与中文字符、位图和内置图片资源。
 
-### Hardware Required
+## 前置条件
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
 
-### Hardware Connection
+## 可修改项
 
-The connection between ESP Board and the LCD is as follows:
+- 屏幕旋转方向由 `main/main.c` 中的 `ROTATE` 宏控制，可选 `ROTATE_0`、`ROTATE_90`、`ROTATE_180`、`ROTATE_270`
 
-```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                   PCLK+--------------+PCLK               |
-|                       |              |                   |
-|             DATA[15:0]+--------------+DATA[15:0]         |
-|                       |              |                   |
-|                  HSYNC+--------------+HSYNC              |
-|                       |              |                   |
-|                  VSYNC+--------------+VSYNC              |
-|                       |              |                   |
-|                     DE+--------------+DE                 |
-|                       |              |                   |
-|               BK_LIGHT+--------------+BLK                |
-+-----------------------+              |                   |
-       IO EXTENSION.EXIO2+--------------+DISP_EN           |
-                                       |                   |
-                                       +-------------------+
-```
+## 构建与烧录
 
-* The LCD parameters and GPIO number used by this example can be changed in [rgb_lcd_port.h](components/rgb_lcd_port.h). Especially, please pay attention to the **vendor specific initialization**, it can be different between manufacturers and should consult the LCD supplier for initialization sequence code.
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-*使用汉字的朋友需要注意，如果用vs code打开，需要切换编码方式，修改成GB2312才能正常显示
-*Just use the characters and ignore the Chinese characters above.
+## 运行现象
 
-### Configure the Project
+- 屏幕背光点亮
+- 依次显示颜色条测试图
+- 依次显示图元、文本、位图和图片资源
 
-### Build and Flash
+## 参考
 
-Run `idf.py set-target esp32s3` to select the target chip.
-
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
-
-The first time you run `idf.py` for the example will cost extra time.
-
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>

@@ -1,45 +1,22 @@
-| Supported Targets | ESP32-S3 |
-| ----------------- | -------- |
+﻿# 01_GPIO
 
-## How to use the example
+## 功能说明
 
-## ESP-IDF Required
+本示例演示 Arduino 环境下的 GPIO 输出控制。程序会翻转板载 LED 的电平，使 LED 以 500 ms 的间隔闪烁。
 
-### Hardware Required
+## 前置条件
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 Arduino IDE 或 Arduino CLI 的 ESP32 开发环境配置
 
-### Hardware Connection
+本示例使用板载 LED，对应引脚为 `GPIO6`，无需额外接线。
 
-The connection between ESP Board and the LED is as follows:
+## 烧录方法
 
-```
-       ESP Board                                LED
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                    AD +--------------+LED                |
-+-----------------------+               +-------------------+
-```
+1. 在 Arduino IDE 中打开 `01_GPIO.ino`
+2. 选择正确的 ESP32-S3 开发板型号与串口
+3. 点击上传
 
-* This example implements the LED flashing at a frequency of 500 milliseconds
+## 运行现象
 
-### Configure the Project
-
-### Build and Flash
-
-Run `idf.py set-target esp32s3` to select the target chip.
-
-Run `idf.py -p PORT build flash` to build, flash.
-
-The first time you run `idf.py` for the example will cost extra time.
-
-
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- 板载 LED 按 500 ms 的间隔持续闪烁

@@ -1,47 +1,35 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-## How to use the example
+# 05-RS485
 
-## ESP-IDF Required
+## 功能说明
 
-### Hardware Required
+本示例演示 RS485 串口回环。程序从 RS485 接口接收数据，再将收到的内容原样发回。
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+## 前置条件
 
-### Hardware Connection
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
+- 已连接 RS485 主机、USB 转 RS485 模块或其他 RS485 设备
 
-The connection between ESP Board and the LED is as follows:
+默认使用 `GPIO16` 作为 TX、`GPIO15` 作为 RX，波特率为 `921600`。
 
-```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                GPIO16 +--------------+RS485_TX             |
-|                       |              |                   |
-|                GPIO15 +--------------+RS485_RX             |
-+-----------------------+               +-------------------+
-```
+## 构建与烧录
 
-* This example implements RS485 test
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-### Configure the Project
+## 运行现象
 
-### Build and Flash
+- 通过 RS485 接口发送任意数据
+- 开发板会回发收到的内容
 
-Run `idf.py set-target esp32s3` to select the target chip.
+## 说明
 
-Run `idf.py -p PORT build flash` to build, flash.
+- 测试时请确认外部设备的波特率、数据位和校验设置与示例一致
+- 如果使用 USB 转 RS485 模块，请确认总线 A/B 连接正确
 
-The first time you run `idf.py` for the example will cost extra time.
+## 参考
 
-
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>

@@ -1,66 +1,43 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-| Supported LCD Controller    | ST7262 |
-| ----------------------------| -------|
+# 11_WIFI_STA
 
-## How to use the example
+## 功能说明
 
-## ESP-IDF Required
+本示例以 STA 模式连接指定的 Wi-Fi 接入点。连接成功后，LCD 会显示获取到的 IP 地址、SSID 和密码；连接失败时会显示失败提示。
 
-### Hardware Required
+## 前置条件
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
+- 已准备可连接的 2.4 GHz Wi-Fi 网络
 
-### Hardware Connection
+## 配置项
 
-The connection between ESP Board and the LCD is as follows:
+请先修改 `main/main.c` 中的以下宏：
 
-```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                   PCLK+--------------+PCLK               |
-|                       |              |                   |
-|             DATA[15:0]+--------------+DATA[15:0]         |
-|                       |              |                   |
-|                  HSYNC+--------------+HSYNC              |
-|                       |              |                   |
-|                  VSYNC+--------------+VSYNC              |
-|                       |              |                   |
-|                     DE+--------------+DE                 |
-|                       |              |                   |
-|               BK_LIGHT+--------------+BLK                |
-+-----------------------+              |                   |
-       IO EXTENSION.EXIO2+--------------+DISP_EN            |
-                                       |                   |
-                                       +-------------------+
-```
+- `USER_SSID`：目标 Wi-Fi 名称
+- `USER_PASS`：目标 Wi-Fi 密码
 
-* This example connects to an AP. Once connected, it displays 
-* the IP address, Wi-Fi name, and password. If the connection 
-* fails, it shows a connection failure message.
+当前示例调用 `wifi_sta_init(..., WIFI_AUTH_WPA2_PSK)`，默认按 WPA2-PSK 方式连接。
 
-*使用汉字的朋友需要注意，如果用vs code打开，需要切换编码方式，修改成GB2312才能正常显示
-*Just use the characters and ignore the Chinese characters above.
+## 构建与烧录
 
-### Configure the Project
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-### Build and Flash
+## 运行现象
 
-Run `idf.py set-target esp32s3` to select the target chip.
+- 连接过程中，LCD 显示 `wifi connecting......`
+- 连接成功后，屏幕显示 IP 地址、SSID 和密码
+- 多次重试后仍失败时，屏幕显示连接失败提示
 
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
+## 说明
 
-The first time you run `idf.py` for the example will cost extra time.
+- 示例会将密码直接显示在屏幕上，公开环境下测试时请留意信息暴露风险
+- 如需更换认证方式，可继续调整 `wifi_sta_init()` 的参数
 
-(To exit the serial monitor, type ``Ctrl-]``.)
+## 参考
 
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>

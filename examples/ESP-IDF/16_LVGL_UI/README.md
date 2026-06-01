@@ -1,82 +1,46 @@
-| Supported Targets | ESP32-S3 |
+﻿| Supported Targets | ESP32-S3 |
 | ----------------- | -------- |
 
-| Supported LCD Controller    | ST7262 |
-| ----------------------------| -------|
+# 16_LVGL_UI
 
-| Supported TOUCH Controller    | GT911 |
-| ----------------------------| -------|
-## How to use the example
+## 功能说明
 
-## ESP-IDF Required
+本示例提供一个基于 LVGL 的综合界面，包含以下功能模块：
 
-### Hardware Required
+- 登录与创建用户，账号信息保存在 NVS
+- Wi-Fi 扫描、连接和 SoftAP 管理
+- RS485 收发界面
+- CAN 收发界面
+- PWM 背光调节与电池电压显示
+- Micro SD 卡相关显示功能
 
-* An Waveshare ESP32-S3-Touch-LCD-4.3 development board
+界面资源位于 `main/ui/`，业务逻辑位于 `main/user/`。
 
-### Hardware Connection
+## 前置条件
 
-The connection between ESP Board and the LCD is as follows:
+- 开发板：微雪 `ESP32-S3-Touch-LCD-7B`
+- 已完成 ESP-IDF 开发环境配置
+- 若需测试 RS485、CAN、Wi-Fi 或 SD 功能，请提前准备对应外设或网络环境
 
-```
-       ESP Board                           RGB  Panel
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                   PCLK+--------------+PCLK               |
-|                       |              |                   |
-|             DATA[15:0]+--------------+DATA[15:0]         |
-|                       |              |                   |
-|                  HSYNC+--------------+HSYNC              |
-|                       |              |                   |
-|                  VSYNC+--------------+VSYNC              |
-|                       |              |                   |
-|                     DE+--------------+DE                 |
-|                       |              |                   |
-|               BK_LIGHT+--------------+BLK                |
-       ESP Board                             TOUCH  
-+-----------------------+              +-------------------+
-|                    GND+--------------+GND                |
-|                       |              |                   |
-|                    3V3+--------------+VCC                |
-|                       |              |                   |
-|                  GPIO8+--------------+SDA                |
-|                       |              |                   |
-|                  GPIO9+--------------+SCL                |
-|                       |              |                   |
-       ESP Board                                LED
-+-----------------------+              +-------------------+
-|                   GND +--------------+GND                |
-|                       |              |                   |
-|                   3V3 +--------------+VCC                |
-|                       |              |                   |
-|                    AD +--------------+LED                |
-+-----------------------+              |                   |
-|                       |              |                   |
-       IO EXTENSION.EXIO1+--------------+TP_RST            |
-|                       |              |                   |
-       IO EXTENSION.EXIO2+--------------+DISP_EN           |          
-                                       +-------------------+
-```
+## 构建与烧录
 
-* Demonstrates an LVGL slider to control LED brightness.
+1. 在当前目录执行 `idf.py set-target esp32s3`
+2. 执行 `idf.py -p PORT flash monitor`
 
-### Configure the Project
+## 运行现象
 
-### Build and Flash
+- 启动后进入登录界面
+- 可创建账户并保存到 NVS，重新上电后仍可使用
+- 登录后可通过触摸屏进入 Wi-Fi、RS485、CAN 和 PWM 等子界面
+- Wi-Fi 功能由后台任务初始化并处理
 
-Run `idf.py set-target esp32s3` to select the target chip.
+## 说明
 
-Run `idf.py -p PORT build flash monitor` to build, flash and monitor the project. A fancy animation will show up on the LCD as expected.
+- 该示例依赖触摸屏完成主要交互
+- 如果需要调整 UI 布局，可修改 `main/ui/` 下的界面文件
+- 如果需要调整业务行为，可修改 `main/user/` 下的对应模块
 
-The first time you run `idf.py` for the example will cost extra time.
+## 参考
 
-(To exit the serial monitor, type ``Ctrl-]``.)
-
-See the [Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/get-started/index.html) for full steps to configure and use ESP-IDF to build projects.
-
-## Troubleshooting
-
-For any technical queries, please open an https://service.waveshare.com/. We will get back to you soon.
+- ESP-IDF 入门说明：<https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/get-started/>
+- LVGL 文档：<https://docs.lvgl.io/>
