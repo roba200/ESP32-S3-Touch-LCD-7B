@@ -20,7 +20,7 @@
 #include <sys/unistd.h>      // For file system operations
 #include <sys/stat.h>        // For file system metadata
 #include "esp_vfs_fat.h"     // FAT filesystem and VFS integration
-#include "../sdmmc_common.h"   // SD card commands  
+#include "sdmmc_cmd.h"       // SD card commands (sdmmc_card_print_info, etc.)
 #include "driver/sdmmc_host.h" // SDMMC host driver
 
 #include "io_extension.h"          // IO EXTENSION I2C CAN control header (optional inclusion)
