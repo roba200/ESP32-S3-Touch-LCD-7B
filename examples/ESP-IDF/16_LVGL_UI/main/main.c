@@ -5,6 +5,29 @@
 
 static const char *TAG = "main"; // Tag used for ESP log output
 
+static void splash_slider_anim_cb(void *var, int32_t value)
+{
+    lv_slider_set_value((lv_obj_t *)var, value, LV_ANIM_OFF);
+}
+
+static void splash_slider_anim_ready_cb(lv_anim_t *a)
+{
+    LV_UNUSED(a);
+    lv_disp_load_scr(ui_MainScreen);
+}
+
+static void start_splash_slider_anim(void)
+{
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_var(&a, ui_LoadingSlider);
+    lv_anim_set_exec_cb(&a, splash_slider_anim_cb);
+    lv_anim_set_values(&a, 0, 100);
+    lv_anim_set_time(&a, 5000); // Fill over 5 seconds
+    lv_anim_set_ready_cb(&a, splash_slider_anim_ready_cb);
+    lv_anim_start(&a);
+}
+
 /**
  * @brief Main application function.
  *
@@ -50,6 +73,7 @@ void app_main()
         // Initialize the UI components with LVGL (e.g., demo screens, sliders)
         // This sets up the user interface elements using the LVGL library.
         ui_init();
+        start_splash_slider_anim();
 
         // Release the mutex after LVGL operations are complete
         // This allows other tasks to access the LVGL port.

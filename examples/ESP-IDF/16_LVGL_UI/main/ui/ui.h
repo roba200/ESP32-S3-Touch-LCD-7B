@@ -23,11 +23,14 @@ extern "C" {
 #endif
 
 #include "ui_helpers.h"
+#include "ui_comp.h"
+#include "ui_comp_hook.h"
 #include "ui_events.h"
 
 
 ///////////////////// SCREENS ////////////////////
 #include "ui_SplashScreen.h"
+#include "ui_MainScreen.h"
 
 ///////////////////// VARIABLES ////////////////////
 
@@ -36,6 +39,16 @@ extern lv_obj_t *ui____initial_actions0;
 
 // IMAGES AND IMAGE SETS
 LV_IMG_DECLARE( ui_img_background_png);   // assets/background.png
+LV_IMG_DECLARE( ui_img_red_slider_png);   // assets/red_slider.png
+LV_IMG_DECLARE( ui_img_black_slider_png);   // assets/black_slider.png
+
+// FONTS
+LV_FONT_DECLARE( ui_font_SairaCondensedBold20);
+LV_FONT_DECLARE( ui_font_SairaSemiCondensedRegualar16);
+LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold56);
+LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold24);
+LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold230);
+LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold40);
 
 // UI INIT
 void ui_init(void);
