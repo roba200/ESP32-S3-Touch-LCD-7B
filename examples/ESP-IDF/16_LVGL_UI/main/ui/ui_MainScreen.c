@@ -5,7 +5,7 @@
 
 #include "ui.h"
 
-lv_obj_t *ui_MainScreen = NULL;lv_obj_t *ui_Container1 = NULL;lv_obj_t *ui_Label1 = NULL;lv_obj_t *ui_RPMSlider = NULL;lv_obj_t *ui_Image3 = NULL;lv_obj_t *ui_Container2 = NULL;lv_obj_t *ui_Label2 = NULL;lv_obj_t *ui_Label3 = NULL;lv_obj_t *ui_Label4 = NULL;lv_obj_t *ui_Label5 = NULL;lv_obj_t *ui_Label6 = NULL;lv_obj_t *ui_Label7 = NULL;lv_obj_t *ui_Container3 = NULL;lv_obj_t *ui_Container4 = NULL;lv_obj_t *ui_ParaTile = NULL;lv_obj_t *ui_ParaTile1 = NULL;lv_obj_t *ui_Panel5 = NULL;lv_obj_t *ui_Label8 = NULL;lv_obj_t *ui_Label9 = NULL;lv_obj_t *ui_Container8 = NULL;lv_obj_t *ui_Container9 = NULL;lv_obj_t *ui_Label10 = NULL;lv_obj_t *ui_Label11 = NULL;lv_obj_t *ui_Label12 = NULL;lv_obj_t *ui_Container10 = NULL;lv_obj_t *ui_Label13 = NULL;lv_obj_t *ui_Label14 = NULL;lv_obj_t *ui_Label15 = NULL;lv_obj_t *ui_Container5 = NULL;lv_obj_t *ui_ParaTile2 = NULL;lv_obj_t *ui_ParaTile3 = NULL;
+lv_obj_t *ui_MainScreen = NULL;lv_obj_t *ui_Container1 = NULL;lv_obj_t *ui_Label1 = NULL;lv_obj_t *ui_Image3 = NULL;lv_obj_t *ui_RPMSlider = NULL;lv_obj_t *ui_Container2 = NULL;lv_obj_t *ui_Label2 = NULL;lv_obj_t *ui_Label3 = NULL;lv_obj_t *ui_Label4 = NULL;lv_obj_t *ui_Label5 = NULL;lv_obj_t *ui_Label6 = NULL;lv_obj_t *ui_Label7 = NULL;lv_obj_t *ui_Container3 = NULL;lv_obj_t *ui_Container4 = NULL;lv_obj_t *ui_ParaTile = NULL;lv_obj_t *ui_ParaTile1 = NULL;lv_obj_t *ui_Panel5 = NULL;lv_obj_t *ui_Label8 = NULL;lv_obj_t *ui_Label9 = NULL;lv_obj_t *ui_Container8 = NULL;lv_obj_t *ui_Container9 = NULL;lv_obj_t *ui_Label10 = NULL;lv_obj_t *ui_Label11 = NULL;lv_obj_t *ui_Label12 = NULL;lv_obj_t *ui_Container10 = NULL;lv_obj_t *ui_Label13 = NULL;lv_obj_t *ui_Label14 = NULL;lv_obj_t *ui_Label15 = NULL;lv_obj_t *ui_Container5 = NULL;lv_obj_t *ui_ParaTile2 = NULL;lv_obj_t *ui_ParaTile3 = NULL;
 // event funtions
 
 // build funtions
@@ -26,8 +26,6 @@ lv_obj_set_height( ui_Container1, 195);
 lv_obj_set_x( ui_Container1, 15 );
 lv_obj_set_y( ui_Container1, -185 );
 lv_obj_set_align( ui_Container1, LV_ALIGN_CENTER );
-lv_obj_set_flex_flow(ui_Container1,LV_FLEX_FLOW_COLUMN);
-lv_obj_set_flex_align(ui_Container1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 lv_obj_clear_flag( ui_Container1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_pad_left(ui_Container1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_right(ui_Container1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -37,6 +35,8 @@ lv_obj_set_style_pad_bottom(ui_Container1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 ui_Label1 = lv_label_create(ui_Container1);
 lv_obj_set_width( ui_Label1, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_Label1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_Label1, -438 );
+lv_obj_set_y( ui_Label1, -84 );
 lv_obj_set_align( ui_Label1, LV_ALIGN_CENTER );
 lv_label_set_text(ui_Label1,"R P M x 1000");
 lv_obj_set_style_text_color(ui_Label1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
@@ -47,14 +47,24 @@ lv_obj_set_style_pad_right(ui_Label1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_top(ui_Label1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_bottom(ui_Label1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 
+ui_Image3 = lv_img_create(ui_Container1);
+lv_img_set_src(ui_Image3, &ui_img_black_slider_png);
+lv_obj_set_width( ui_Image3, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Image3, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_Image3, -3 );
+lv_obj_set_y( ui_Image3, -8 );
+lv_obj_set_align( ui_Image3, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_Image3, LV_OBJ_FLAG_ADV_HITTEST );   /// Flags
+lv_obj_clear_flag( ui_Image3, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+
 ui_RPMSlider = lv_slider_create(ui_Container1);
 lv_slider_set_range(ui_RPMSlider, 0,1000);
 lv_slider_set_value( ui_RPMSlider, 1000, LV_ANIM_OFF);
 if (lv_slider_get_mode(ui_RPMSlider)==LV_SLIDER_MODE_RANGE ) lv_slider_set_left_value( ui_RPMSlider, 0, LV_ANIM_OFF);
 lv_obj_set_width( ui_RPMSlider, 977);
 lv_obj_set_height( ui_RPMSlider, 107);
-lv_obj_set_x( ui_RPMSlider, 20 );
-lv_obj_set_y( ui_RPMSlider, -46 );
+lv_obj_set_x( ui_RPMSlider, -2 );
+lv_obj_set_y( ui_RPMSlider, -7 );
 lv_obj_set_align( ui_RPMSlider, LV_ALIGN_CENTER );
 lv_obj_set_style_radius(ui_RPMSlider, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_bg_color(ui_RPMSlider, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
@@ -69,22 +79,12 @@ lv_obj_set_style_bg_img_src( ui_RPMSlider, &ui_img_red_slider_png, LV_PART_INDIC
 lv_obj_set_style_bg_color(ui_RPMSlider, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT );
 lv_obj_set_style_bg_opa(ui_RPMSlider, 0, LV_PART_KNOB| LV_STATE_DEFAULT);
 
-ui_Image3 = lv_img_create(ui_RPMSlider);
-lv_img_set_src(ui_Image3, &ui_img_black_slider_png);
-lv_obj_set_width( ui_Image3, LV_SIZE_CONTENT);  /// 1
-lv_obj_set_height( ui_Image3, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_Image3, -11 );
-lv_obj_set_y( ui_Image3, -189 );
-lv_obj_set_align( ui_Image3, LV_ALIGN_CENTER );
-lv_obj_add_flag( ui_Image3, LV_OBJ_FLAG_ADV_HITTEST );   /// Flags
-lv_obj_clear_flag( ui_Image3, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-
 ui_Container2 = lv_obj_create(ui_Container1);
 lv_obj_remove_style_all(ui_Container2);
 lv_obj_set_width( ui_Container2, 976);
 lv_obj_set_height( ui_Container2, 31);
-lv_obj_set_x( ui_Container2, -1 );
-lv_obj_set_y( ui_Container2, 0 );
+lv_obj_set_x( ui_Container2, -4 );
+lv_obj_set_y( ui_Container2, 70 );
 lv_obj_set_align( ui_Container2, LV_ALIGN_CENTER );
 lv_obj_set_flex_flow(ui_Container2,LV_FLEX_FLOW_ROW);
 lv_obj_set_flex_align(ui_Container2, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER);
@@ -344,8 +344,8 @@ void ui_MainScreen_screen_destroy(void)
 ui_MainScreen= NULL;
 ui_Container1= NULL;
 ui_Label1= NULL;
-ui_RPMSlider= NULL;
 ui_Image3= NULL;
+ui_RPMSlider= NULL;
 ui_Container2= NULL;
 ui_Label2= NULL;
 ui_Label3= NULL;

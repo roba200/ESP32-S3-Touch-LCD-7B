@@ -39,8 +39,8 @@ extern lv_obj_t *ui____initial_actions0;
 
 // IMAGES AND IMAGE SETS
 LV_IMG_DECLARE( ui_img_background_png);   // assets/background.png
-LV_IMG_DECLARE( ui_img_red_slider_png);   // assets/red_slider.png
 LV_IMG_DECLARE( ui_img_black_slider_png);   // assets/black_slider.png
+LV_IMG_DECLARE( ui_img_red_slider_png);   // assets/red_slider.png
 
 // FONTS
 LV_FONT_DECLARE( ui_font_SairaCondensedBold20);
