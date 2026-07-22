@@ -31,6 +31,7 @@ extern "C" {
 ///////////////////// SCREENS ////////////////////
 #include "ui_SplashScreen.h"
 #include "ui_MainScreen.h"
+#include "ui_AnalogClusterScreen.h"
 
 ///////////////////// VARIABLES ////////////////////
 
@@ -41,14 +42,29 @@ extern lv_obj_t *ui____initial_actions0;
 LV_IMG_DECLARE( ui_img_background_png);   // assets/background.png
 LV_IMG_DECLARE( ui_img_black_slider_png);   // assets/black_slider.png
 LV_IMG_DECLARE( ui_img_red_slider_png);   // assets/red_slider.png
+LV_IMG_DECLARE( ui_img_left_indicator_png);   // assets/left_indicator.png
+LV_IMG_DECLARE( ui_img_high_beam_png);   // assets/high_beam.png
+LV_IMG_DECLARE( ui_img_low_beam_png);   // assets/low_beam.png
+LV_IMG_DECLARE( ui_img_brake_png);   // assets/brake.png
+LV_IMG_DECLARE( ui_img_engine_earning_png);   // assets/engine_earning.png
+LV_IMG_DECLARE( ui_img_right_indicator_png);   // assets/right_indicator.png
+LV_IMG_DECLARE( ui_img_hor_bottom_slider_png);   // assets/hor_bottom_slider.png
+LV_IMG_DECLARE( ui_img_hor_top_slider_png);   // assets/hor_top_slider.png
+LV_IMG_DECLARE( ui_img_ver_bottom_slider_png);   // assets/ver_bottom_slider.png
+LV_IMG_DECLARE( ui_img_ver_top_slider_png);   // assets/ver_top_slider.png
+LV_IMG_DECLARE( ui_img_big_gauge_png);   // assets/big_gauge.png
+LV_IMG_DECLARE( ui_img_big_gauge_indicator_png);   // assets/big_gauge_indicator.png
+LV_IMG_DECLARE( ui_img_rpm_gauge_png);   // assets/rpm_gauge.png
+LV_IMG_DECLARE( ui_img_small_gauge_png);   // assets/small_gauge.png
+LV_IMG_DECLARE( ui_img_small_indicator_png);   // assets/small_indicator.png
 
 // FONTS
 LV_FONT_DECLARE( ui_font_SairaCondensedBold20);
-LV_FONT_DECLARE( ui_font_SairaSemiCondensedRegualar16);
-LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold56);
-LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold24);
 LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold230);
+LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold24);
 LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold40);
+LV_FONT_DECLARE( ui_font_SairaSemiCondensedExtraBold56);
+LV_FONT_DECLARE( ui_font_SairaSemiCondensedRegualar16);
 
 // UI INIT
 void ui_init(void);

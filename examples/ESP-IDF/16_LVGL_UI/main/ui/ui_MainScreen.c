@@ -7,6 +7,14 @@
 
 lv_obj_t *ui_MainScreen = NULL;lv_obj_t *ui_Container1 = NULL;lv_obj_t *ui_Label1 = NULL;lv_obj_t *ui_Image3 = NULL;lv_obj_t *ui_RPMSlider = NULL;lv_obj_t *ui_Container2 = NULL;lv_obj_t *ui_Label2 = NULL;lv_obj_t *ui_Label3 = NULL;lv_obj_t *ui_Label4 = NULL;lv_obj_t *ui_Label5 = NULL;lv_obj_t *ui_Label6 = NULL;lv_obj_t *ui_Label7 = NULL;lv_obj_t *ui_Container3 = NULL;lv_obj_t *ui_Container4 = NULL;lv_obj_t *ui_ParaTile = NULL;lv_obj_t *ui_ParaTile1 = NULL;lv_obj_t *ui_Panel5 = NULL;lv_obj_t *ui_Label8 = NULL;lv_obj_t *ui_Label9 = NULL;lv_obj_t *ui_Container8 = NULL;lv_obj_t *ui_Container9 = NULL;lv_obj_t *ui_Label10 = NULL;lv_obj_t *ui_Label11 = NULL;lv_obj_t *ui_Label12 = NULL;lv_obj_t *ui_Container10 = NULL;lv_obj_t *ui_Label13 = NULL;lv_obj_t *ui_Label14 = NULL;lv_obj_t *ui_Label15 = NULL;lv_obj_t *ui_Container5 = NULL;lv_obj_t *ui_ParaTile2 = NULL;lv_obj_t *ui_ParaTile3 = NULL;
 // event funtions
+void ui_event_MainScreen( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+if ( event_code == LV_EVENT_GESTURE &&  lv_indev_get_gesture_dir(lv_indev_get_act()) == LV_DIR_LEFT  ) {
+lv_indev_wait_release(lv_indev_get_act());
+      _ui_screen_change( &ui_AnalogClusterScreen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_AnalogClusterScreen_screen_init);
+}
+}
 
 // build funtions
 
@@ -333,6 +341,8 @@ lv_obj_set_y( ui_ParaTile2, 0 );
 ui_ParaTile3 = ui_ParaTile_create(ui_Container5);
 lv_obj_set_x( ui_ParaTile3, 10 );
 lv_obj_set_y( ui_ParaTile3, 0 );
+
+lv_obj_add_event_cb(ui_MainScreen, ui_event_MainScreen, LV_EVENT_ALL, NULL);
 
 }
 
