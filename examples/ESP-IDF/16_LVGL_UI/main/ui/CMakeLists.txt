@@ -3,6 +3,7 @@ SET(SOURCES ui_comp_paratile.c
     ui_SplashScreen.c
     ui_MainScreen.c
     ui_AnalogClusterScreen.c
+    ui_AllChannelsScreen.c
     ui.c
     ui_comp_hook.c
     ui_helpers.c

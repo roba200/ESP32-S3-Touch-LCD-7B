@@ -21,7 +21,7 @@ extern "C" {
 #define UI_COMP_PARATILE_PANEL2_CONTAINER6_CONTAINER7_VALUE 5
 #define UI_COMP_PARATILE_PANEL2_CONTAINER6_CONTAINER7_SYMBOL 6
 #define _UI_COMP_PARATILE_NUM 7
-lv_obj_t *ui_ParaTile_create(lv_obj_t *comp_parent);
+lv_obj_t * ui_ParaTile_create(lv_obj_t * comp_parent);
 
 #ifdef __cplusplus
 } /*extern "C"*/

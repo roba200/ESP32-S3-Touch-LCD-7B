@@ -10,33 +10,53 @@
 extern "C" {
 #endif
 
-
 // SCREEN: ui_AnalogClusterScreen
 extern void ui_AnalogClusterScreen_screen_init(void);
 extern void ui_AnalogClusterScreen_screen_destroy(void);
-extern lv_obj_t *ui_AnalogClusterScreen;
-extern lv_obj_t *ui_Container11;
-extern lv_obj_t *ui_Image2;
-extern lv_obj_t *ui_Container13;
-extern lv_obj_t *ui_Image5;
-extern lv_obj_t *ui_Image7;
-extern lv_obj_t *ui_Image6;
-extern lv_obj_t *ui_Image8;
-extern lv_obj_t *ui_Image4;
-extern lv_obj_t *ui_Slider1;
-extern lv_obj_t *ui_Bar4;
-extern lv_obj_t *ui_Container14;
-extern lv_obj_t *ui_Image9;
-extern lv_obj_t *ui_Image10;
-extern lv_obj_t *ui_Image11;
-extern lv_obj_t *ui_Image12;
-extern lv_obj_t *ui_Container12;
-extern lv_obj_t *ui_Image13;
-extern lv_obj_t *ui_Image14;
-extern lv_obj_t *ui_Image15;
-extern lv_obj_t *ui_Image16;
-extern lv_obj_t *ui_Image17;
-extern lv_obj_t *ui_Image18;
+extern void ui_event_AnalogClusterScreen(lv_event_t * e);
+extern lv_obj_t * ui_AnalogClusterScreen;
+extern lv_obj_t * ui_Container11;
+extern lv_obj_t * ui_Image2;
+extern lv_obj_t * ui_Container13;
+extern lv_obj_t * ui_Image5;
+extern lv_obj_t * ui_Image7;
+extern lv_obj_t * ui_Image6;
+extern lv_obj_t * ui_Image8;
+extern lv_obj_t * ui_Image4;
+extern lv_obj_t * ui_Slider1;
+extern lv_obj_t * ui_Bar4;
+extern lv_obj_t * ui_Image9;
+extern lv_obj_t * ui_Image10;
+extern lv_obj_t * ui_Image11;
+extern lv_obj_t * ui_Image12;
+extern lv_obj_t * ui_Container12;
+extern lv_obj_t * ui_Image23;
+extern lv_obj_t * ui_Container20;
+extern lv_obj_t * ui_Label25;
+extern lv_obj_t * ui_Image24;
+extern lv_obj_t * ui_Container21;
+extern lv_obj_t * ui_Label26;
+extern lv_obj_t * ui_Label27;
+extern lv_obj_t * ui_Container14;
+extern lv_obj_t * ui_Label16;
+extern lv_obj_t * ui_Image13;
+extern lv_obj_t * ui_Container15;
+extern lv_obj_t * ui_Label17;
+extern lv_obj_t * ui_Image14;
+extern lv_obj_t * ui_Container22;
+extern lv_obj_t * ui_Label18;
+extern lv_obj_t * ui_Label28;
+extern lv_obj_t * ui_Container23;
+extern lv_obj_t * ui_Label29;
+extern lv_obj_t * ui_Image15;
+extern lv_obj_t * ui_Container24;
+extern lv_obj_t * ui_Label30;
+extern lv_obj_t * ui_Image16;
+extern lv_obj_t * ui_Container25;
+extern lv_obj_t * ui_Label31;
+extern lv_obj_t * ui_Label32;
+extern lv_obj_t * ui_Container26;
+extern lv_obj_t * ui_Label33;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus
