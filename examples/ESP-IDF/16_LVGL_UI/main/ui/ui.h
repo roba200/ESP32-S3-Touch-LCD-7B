@@ -33,6 +33,8 @@ extern "C" {
 #include "ui_MainScreen.h"
 #include "ui_AnalogClusterScreen.h"
 #include "ui_AllChannelsScreen.h"
+#include "ui_WarningScreen.h"
+#include "ui_SettingsScreen.h"
 
 ///////////////////// VARIABLES ////////////////////
 
@@ -60,6 +62,7 @@ LV_IMG_DECLARE(ui_img_big_gauge_indicator_png);    // assets/big_gauge_indicator
 LV_IMG_DECLARE(ui_img_rpm_gauge_png);    // assets/rpm_gauge.png
 LV_IMG_DECLARE(ui_img_small_gauge_png);    // assets/small_gauge.png
 LV_IMG_DECLARE(ui_img_small_indicator_png);    // assets/small_indicator.png
+LV_IMG_DECLARE(ui_img_mark_png);    // assets/mark.png
 
 // FONTS
 LV_FONT_DECLARE(ui_font_SairaCondensedBold20);

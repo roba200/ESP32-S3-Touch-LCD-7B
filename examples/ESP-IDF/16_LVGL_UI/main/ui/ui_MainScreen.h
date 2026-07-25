@@ -3,8 +3,8 @@
 // LVGL version: 8.3.11
 // Project name: SquareLine_Project
 
-#ifndef UI_MAINSCREEN_H
-#define UI_MAINSCREEN_H
+#ifndef UI_MAINSCREEN
+#define UI_MAINSCREEN
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,7 +13,6 @@ extern "C" {
 // SCREEN: ui_MainScreen
 extern void ui_MainScreen_screen_init(void);
 extern void ui_MainScreen_screen_destroy(void);
-extern void ui_event_MainScreen(lv_event_t * e);
 extern lv_obj_t * ui_MainScreen;
 extern lv_obj_t * ui_Container1;
 extern lv_obj_t * ui_Label1;
@@ -28,28 +27,28 @@ extern lv_obj_t * ui_Label6;
 extern lv_obj_t * ui_Label7;
 extern lv_obj_t * ui_Container3;
 extern lv_obj_t * ui_Container4;
-extern lv_obj_t * ui_ParaTile;
-extern lv_obj_t * ui_ParaTile1;
+extern lv_obj_t * ui_DigitalChannel1;
+extern lv_obj_t * ui_DigitalChannel2;
 extern lv_obj_t * ui_Panel5;
 extern lv_obj_t * ui_Label8;
-extern lv_obj_t * ui_Label9;
+extern lv_obj_t * ui_GearShiftValue;
 extern lv_obj_t * ui_Container8;
 extern lv_obj_t * ui_Container9;
-extern lv_obj_t * ui_Label10;
-extern lv_obj_t * ui_Label11;
+extern lv_obj_t * ui_SpeedLabel;
+extern lv_obj_t * ui_SpeedValue;
 extern lv_obj_t * ui_Label12;
 extern lv_obj_t * ui_Container10;
 extern lv_obj_t * ui_Label13;
-extern lv_obj_t * ui_Label14;
+extern lv_obj_t * ui_LambdaValue;
 extern lv_obj_t * ui_Label15;
 extern lv_obj_t * ui_Container5;
-extern lv_obj_t * ui_ParaTile2;
-extern lv_obj_t * ui_ParaTile3;
+extern lv_obj_t * ui_DigitalChannel3;
+extern lv_obj_t * ui_DigitalChannel4;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
 
-#endif
+#endif /* UI_MAINSCREEN */
 

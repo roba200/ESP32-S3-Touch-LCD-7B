@@ -1,3 +1,5 @@
+#include <stdio.h>        // snprintf, used to format live channel values
+
 #include "rgb_lcd_port.h" // Header for Waveshare RGB LCD driver
 #include "gt911.h"        // Header for touch screen operations (GT911)
 #include "lvgl_port.h"    // Header for LVGL port initialization and locking
@@ -25,6 +27,54 @@ static void dash_on_rpm(int16_t rpm)
     if (lvgl_port_lock(-1))
     {
         lv_slider_set_value(ui_RPMSlider, slider_value, LV_ANIM_OFF);
+        lvgl_port_unlock();
+    }
+}
+
+// lv_label_set_text_fmt() goes through LVGL's own printf, which has
+// LV_SPRINTF_USE_FLOAT off in this project's config - %f prints as a bare
+// "f". Format floats with the real libc snprintf instead.
+
+static void dash_on_speed(float speed_kmh)
+{
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.0f", speed_kmh);
+
+    if (lvgl_port_lock(-1))
+    {
+        lv_label_set_text(ui_SpeedValue, buf);
+        lvgl_port_unlock();
+    }
+}
+
+static void dash_on_lambda(float lambda)
+{
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%.2f", lambda);
+
+    if (lvgl_port_lock(-1))
+    {
+        lv_label_set_text(ui_LambdaValue, buf);
+        lvgl_port_unlock();
+    }
+}
+
+static void dash_on_gear(int16_t gear)
+{
+    if (lvgl_port_lock(-1))
+    {
+        if (gear < 0)
+        {
+            lv_label_set_text(ui_GearShiftValue, "R");
+        }
+        else if (gear == 0)
+        {
+            lv_label_set_text(ui_GearShiftValue, "N");
+        }
+        else
+        {
+            lv_label_set_text_fmt(ui_GearShiftValue, "%d", gear);
+        }
         lvgl_port_unlock();
     }
 }
@@ -107,5 +157,8 @@ void app_main()
     // Start the MaxxECU CAN log stream (relies on the IO extension / I2C
     // bus already brought up by touch_gt911_init() above).
     maxxecu_can_set_rpm_callback(dash_on_rpm);
+    maxxecu_can_set_speed_callback(dash_on_speed);
+    maxxecu_can_set_lambda_callback(dash_on_lambda);
+    maxxecu_can_set_gear_callback(dash_on_gear);
     maxxecu_can_start();
 }

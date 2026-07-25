@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 20 px
  * Bpp: 4
- * Opts: --bpp 4 --size 20 --font C:/Users/pasin/Desktop/7inch motor dash/squareline/assets/SairaCondensed-Thin.ttf -o C:/Users/pasin/Desktop/7inch motor dash/squareline/assets\ui_font_SairaSemiCondensedRegualar16.c --format lvgl -r 0x20-0x7f --no-compress --no-prefilter
+ * Opts: --bpp 4 --size 20 --font C:/Users/pasin/Desktop/7inch motor dash/squareline/assets/SairaCondensed-Thin.ttf -o C:/Users/pasin/Desktop/7inch motor dash/squareline/assets\ui_font_SairaSemiCondensedRegualar16.c --format lvgl -r 0x20-0x7f --symbols · --no-compress --no-prefilter
  ******************************************************************************/
 
 #include "ui.h"
@@ -734,7 +734,10 @@ static LV_ATTRIBUTE_LARGE_CONST const uint8_t glyph_bitmap[] = {
 
     /* U+007E "~" */
     0x0, 0x0, 0x0, 0x4, 0xa9, 0x40, 0x35, 0x80,
-    0x6, 0xaa, 0x10
+    0x6, 0xaa, 0x10,
+
+    /* U+00B7 "·" */
+    0x0, 0xd1, 0x30
 };
 
 
@@ -838,7 +841,8 @@ static const lv_font_fmt_txt_glyph_dsc_t glyph_dsc[] = {
     {.bitmap_index = 3722, .adv_w = 76, .box_w = 5, .box_h = 17, .ofs_x = 0, .ofs_y = -3},
     {.bitmap_index = 3765, .adv_w = 70, .box_w = 2, .box_h = 18, .ofs_x = 1, .ofs_y = -4},
     {.bitmap_index = 3783, .adv_w = 76, .box_w = 5, .box_h = 17, .ofs_x = 0, .ofs_y = -3},
-    {.bitmap_index = 3826, .adv_w = 139, .box_w = 7, .box_h = 3, .ofs_x = 1, .ofs_y = 5}
+    {.bitmap_index = 3826, .adv_w = 139, .box_w = 7, .box_h = 3, .ofs_x = 1, .ofs_y = 5},
+    {.bitmap_index = 3837, .adv_w = 51, .box_w = 2, .box_h = 3, .ofs_x = 1, .ofs_y = 4}
 };
 
 /*---------------------
@@ -852,6 +856,10 @@ static const lv_font_fmt_txt_cmap_t cmaps[] =
 {
     {
         .range_start = 32, .range_length = 95, .glyph_id_start = 1,
+        .unicode_list = NULL, .glyph_id_ofs_list = NULL, .list_length = 0, .type = LV_FONT_FMT_TXT_CMAP_FORMAT0_TINY
+    },
+    {
+        .range_start = 183, .range_length = 1, .glyph_id_start = 96,
         .unicode_list = NULL, .glyph_id_ofs_list = NULL, .list_length = 0, .type = LV_FONT_FMT_TXT_CMAP_FORMAT0_TINY
     }
 };
@@ -1163,7 +1171,7 @@ static lv_font_fmt_txt_dsc_t font_dsc = {
     .cmaps = cmaps,
     .kern_dsc = &kern_pairs,
     .kern_scale = 16,
-    .cmap_num = 1,
+    .cmap_num = 2,
     .bpp = 4,
     .kern_classes = 0,
     .bitmap_format = 0,

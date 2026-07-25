@@ -60,10 +60,28 @@ static inline int16_t le_i16(const uint8_t *b)
 }
 
 static maxxecu_can_rpm_cb_t s_rpm_cb = NULL;
+static maxxecu_can_speed_cb_t s_speed_cb = NULL;
+static maxxecu_can_lambda_cb_t s_lambda_cb = NULL;
+static maxxecu_can_gear_cb_t s_gear_cb = NULL;
 
 void maxxecu_can_set_rpm_callback(maxxecu_can_rpm_cb_t cb)
 {
     s_rpm_cb = cb;
+}
+
+void maxxecu_can_set_speed_callback(maxxecu_can_speed_cb_t cb)
+{
+    s_speed_cb = cb;
+}
+
+void maxxecu_can_set_lambda_callback(maxxecu_can_lambda_cb_t cb)
+{
+    s_lambda_cb = cb;
+}
+
+void maxxecu_can_set_gear_callback(maxxecu_can_gear_cb_t cb)
+{
+    s_gear_cb = cb;
 }
 
 static void decode_and_print(const twai_message_t *msg)
@@ -82,18 +100,22 @@ static void decode_and_print(const twai_message_t *msg)
     case ID_RPM_MAP_LAMBDA:
     {
         int16_t rpm = le_i16(&msg->data[0]);
+        float lambda = le_i16(&msg->data[6]) * 0.001f;
 
-        // Fires every frame (~50 Hz) so a UI gauge stays smooth, independent
-        // of the once-a-second console print below.
+        // Fire every frame (~50 Hz) so UI gauges stay smooth, independent of
+        // the once-a-second console print below.
         if (s_rpm_cb)
         {
             s_rpm_cb(rpm);
+        }
+        if (s_lambda_cb)
+        {
+            s_lambda_cb(lambda);
         }
 
         if (now - last_print_tick[0] >= DECODE_PRINT_PERIOD_TICKS)
         {
             float map_kpa = le_i16(&msg->data[4]) * 0.1f;
-            float lambda = le_i16(&msg->data[6]) * 0.001f;
             printf("  RPM=%d  MAP=%.1f kPa  Lambda=%.3f\n", rpm, map_kpa, lambda);
             last_print_tick[0] = now;
         }
@@ -101,13 +123,21 @@ static void decode_and_print(const twai_message_t *msg)
     }
 
     case ID_SPEED:
+    {
+        float speed_kmh = le_i16(&msg->data[6]) * 0.1f;
+
+        if (s_speed_cb)
+        {
+            s_speed_cb(speed_kmh);
+        }
+
         if (now - last_print_tick[1] >= DECODE_PRINT_PERIOD_TICKS)
         {
-            float speed_kmh = le_i16(&msg->data[6]) * 0.1f;
             printf("  Speed=%.1f km/h\n", speed_kmh);
             last_print_tick[1] = now;
         }
         break;
+    }
 
     case ID_BATT_IAT_COOLANT:
         if (now - last_print_tick[2] >= DECODE_PRINT_PERIOD_TICKS)
@@ -121,14 +151,22 @@ static void decode_and_print(const twai_message_t *msg)
         break;
 
     case ID_GEAR_OILTEMP:
+    {
+        int16_t gear = le_i16(&msg->data[0]);
+
+        if (s_gear_cb)
+        {
+            s_gear_cb(gear);
+        }
+
         if (now - last_print_tick[3] >= DECODE_PRINT_PERIOD_TICKS)
         {
-            int16_t gear = le_i16(&msg->data[0]);
             float oil_temp_c = le_i16(&msg->data[6]) * 0.1f;
             printf("  Gear=%d  OilTemp=%.1f C\n", gear, oil_temp_c);
             last_print_tick[3] = now;
         }
         break;
+    }
 
     default:
         // Unknown IDs are printed raw only, nothing more to decode.

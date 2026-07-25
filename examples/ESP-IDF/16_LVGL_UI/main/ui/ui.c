@@ -39,6 +39,8 @@ void ui_init(void)
     ui_MainScreen_screen_init();
     ui_AnalogClusterScreen_screen_init();
     ui_AllChannelsScreen_screen_init();
+    ui_WarningScreen_screen_init();
+    ui_SettingsScreen_screen_init();
     ui____initial_actions0 = lv_obj_create(NULL);
     lv_disp_load_scr(ui_SplashScreen);
 }
@@ -49,4 +51,6 @@ void ui_destroy(void)
     ui_MainScreen_screen_destroy();
     ui_AnalogClusterScreen_screen_destroy();
     ui_AllChannelsScreen_screen_destroy();
+    ui_WarningScreen_screen_destroy();
+    ui_SettingsScreen_screen_destroy();
 }

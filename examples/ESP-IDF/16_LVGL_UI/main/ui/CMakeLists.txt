@@ -4,6 +4,8 @@ SET(SOURCES ui_comp_paratile.c
     ui_MainScreen.c
     ui_AnalogClusterScreen.c
     ui_AllChannelsScreen.c
+    ui_WarningScreen.c
+    ui_SettingsScreen.c
     ui.c
     ui_comp_hook.c
     ui_helpers.c
@@ -25,6 +27,7 @@ SET(SOURCES ui_comp_paratile.c
     ui_img_rpm_gauge_png.c
     ui_img_small_gauge_png.c
     ui_img_small_indicator_png.c
+    ui_img_mark_png.c
     fonts/ui_font_SairaCondensedBold20.c
     fonts/ui_font_SairaSemiCondensedExtraBold230.c
     fonts/ui_font_SairaSemiCondensedExtraBold24.c
