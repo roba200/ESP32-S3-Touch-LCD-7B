@@ -32,6 +32,11 @@ static volatile int16_t dash_latest_rpm = 0;
 static volatile float dash_latest_speed_kmh = 0.0f;
 static volatile float dash_latest_lambda = 0.0f;
 static volatile int16_t dash_latest_gear = 0;
+static volatile float dash_latest_map_kpa = 0.0f;
+static volatile float dash_latest_battery_v = 0.0f;
+static volatile float dash_latest_iat_c = 0.0f;
+static volatile float dash_latest_coolant_c = 0.0f;
+static volatile float dash_latest_oil_temp_c = 0.0f;
 
 static void dash_on_rpm(int16_t rpm)
 {
@@ -51,6 +56,130 @@ static void dash_on_lambda(float lambda)
 static void dash_on_gear(int16_t gear)
 {
     dash_latest_gear = gear;
+}
+
+static void dash_on_map(float map_kpa)
+{
+    dash_latest_map_kpa = map_kpa;
+}
+
+static void dash_on_battery(float battery_v)
+{
+    dash_latest_battery_v = battery_v;
+}
+
+static void dash_on_iat(float iat_c)
+{
+    dash_latest_iat_c = iat_c;
+}
+
+static void dash_on_coolant(float coolant_c)
+{
+    dash_latest_coolant_c = coolant_c;
+}
+
+static void dash_on_oil_temp(float oil_temp_c)
+{
+    dash_latest_oil_temp_c = oil_temp_c;
+}
+
+// ---- MainScreen's 4 tappable "digital channel" tiles ----
+//
+// Each ui_DigitalChannelN is a ui_ParaTile component (Name / Value / Symbol
+// labels - see ui_comp_paratile.c) with no fixed meaning of its own.
+// Tapping one advances it to the next channel in dash_channels[]; the value
+// shown keeps refreshing every tick regardless of which channel is selected.
+//
+// Only channels already decoded by maxxecu_can are wired up here. The full
+// MaxxECU Default protocol has ~50 more (see chat) - add a callback in
+// maxxecu_can.c/.h following the existing pattern, a dash_latest_* here, and
+// a row below to make one of those tappable too.
+typedef enum {
+    DASH_CH_MAP,
+    DASH_CH_BATTERY,
+    DASH_CH_IAT,
+    DASH_CH_COOLANT,
+    DASH_CH_OIL_TEMP,
+    DASH_CH_COUNT,
+} dash_channel_kind_t;
+
+typedef struct {
+    const char *name;         // shown in the tile's Name label
+    const char *symbol;       // shown in the tile's Symbol (unit) label
+    const char *fmt;          // printf-style format for the value
+    volatile float *value;    // live value backing this channel
+} dash_channel_def_t;
+
+static const dash_channel_def_t dash_channels[DASH_CH_COUNT] = {
+    [DASH_CH_MAP] = {"M A P", "kPa", "%.0f", &dash_latest_map_kpa},
+    [DASH_CH_BATTERY] = {"B A T T E R Y", "V", "%.2f", &dash_latest_battery_v},
+    [DASH_CH_IAT] = {"I A T", "\xC2\xB0" "C", "%.0f", &dash_latest_iat_c},
+    [DASH_CH_COOLANT] = {"C O O L A N T", "\xC2\xB0" "C", "%.0f", &dash_latest_coolant_c},
+    [DASH_CH_OIL_TEMP] = {"O I L  T E M P", "\xC2\xB0" "C", "%.0f", &dash_latest_oil_temp_c},
+};
+
+typedef struct {
+    lv_obj_t *panel;       // the tile's clickable Panel2 child - see below
+    lv_obj_t *name_label;
+    lv_obj_t *value_label;
+    lv_obj_t *symbol_label;
+    uint8_t channel_index;
+} dash_digital_channel_tile_t;
+
+static dash_digital_channel_tile_t dash_tiles[4];
+
+// Re-formats the currently selected channel's live value. Cheap enough to
+// call every UI tick regardless of whether the channel changed.
+static void dash_digital_channel_refresh_value(dash_digital_channel_tile_t *tile)
+{
+    const dash_channel_def_t *def = &dash_channels[tile->channel_index];
+    char buf[16];
+
+    snprintf(buf, sizeof(buf), def->fmt, *def->value);
+    lv_label_set_text(tile->value_label, buf);
+}
+
+// Switches the tile to a new channel: sets Name/Symbol (only needed once
+// per selection, unlike the value) and refreshes the value immediately.
+static void dash_digital_channel_select(dash_digital_channel_tile_t *tile, dash_channel_kind_t channel)
+{
+    tile->channel_index = channel;
+    const dash_channel_def_t *def = &dash_channels[channel];
+    lv_label_set_text(tile->name_label, def->name);
+    lv_label_set_text(tile->symbol_label, def->symbol);
+    dash_digital_channel_refresh_value(tile);
+}
+
+static void dash_digital_channel_click_cb(lv_event_t *e)
+{
+    dash_digital_channel_tile_t *tile = lv_event_get_user_data(e);
+    dash_digital_channel_select(tile, (tile->channel_index + 1) % DASH_CH_COUNT);
+}
+
+// Wires one ui_DigitalChannelN tile to a starting channel and makes it
+// tappable. Must run under lvgl_port_lock (called from app_main's locked
+// ui_init() block).
+static void dash_digital_channel_tile_init(dash_digital_channel_tile_t *tile, lv_obj_t *root,
+                                            dash_channel_kind_t start_channel)
+{
+    // ui_ParaTile_create()'s root object is only a 5px border around Panel2,
+    // which covers virtually the whole visible tile and is what actually
+    // receives the tap - hook the click event there, not on the root.
+    tile->panel = ui_comp_get_child(root, UI_COMP_PARATILE_PANEL2);
+    tile->name_label = ui_comp_get_child(root, UI_COMP_PARATILE_PANEL2_CONTAINER6_NAME);
+    tile->value_label = ui_comp_get_child(root, UI_COMP_PARATILE_PANEL2_CONTAINER6_CONTAINER7_VALUE);
+    tile->symbol_label = ui_comp_get_child(root, UI_COMP_PARATILE_PANEL2_CONTAINER6_CONTAINER7_SYMBOL);
+
+    dash_digital_channel_select(tile, start_channel);
+    lv_obj_add_event_cb(tile->panel, dash_digital_channel_click_cb, LV_EVENT_CLICKED, tile);
+}
+
+static void dash_digital_channels_init(void)
+{
+    dash_digital_channel_tile_init(&dash_tiles[0], ui_DigitalChannel1, DASH_CH_MAP);
+    dash_digital_channel_tile_init(&dash_tiles[1], ui_DigitalChannel2, DASH_CH_BATTERY);
+    dash_digital_channel_tile_init(&dash_tiles[2], ui_DigitalChannel3, DASH_CH_IAT);
+    dash_digital_channel_tile_init(&dash_tiles[3], ui_DigitalChannel4, DASH_CH_COOLANT);
 }
 
 // lv_label_set_text_fmt() goes through LVGL's own printf, which has
@@ -94,6 +223,13 @@ static void dash_ui_timer_cb(lv_timer_t *timer)
     else
     {
         lv_label_set_text_fmt(ui_GearShiftValue, "%d", gear);
+    }
+
+    // Re-format whichever channel each digital channel tile is currently
+    // showing - the value keeps live-updating even between taps.
+    for (size_t i = 0; i < sizeof(dash_tiles) / sizeof(dash_tiles[0]); i++)
+    {
+        dash_digital_channel_refresh_value(&dash_tiles[i]);
     }
 }
 
@@ -167,6 +303,10 @@ void app_main()
         ui_init();
         start_splash_slider_anim();
 
+        // Make MainScreen's 4 digital channel tiles show live data and
+        // respond to taps.
+        dash_digital_channels_init();
+
         // Periodic repaint of the live CAN channel widgets, decoupled from
         // the CAN RX task - see dash_ui_timer_cb() for why.
         lv_timer_create(dash_ui_timer_cb, DASH_UI_REFRESH_PERIOD_MS, NULL);
@@ -182,5 +322,10 @@ void app_main()
     maxxecu_can_set_speed_callback(dash_on_speed);
     maxxecu_can_set_lambda_callback(dash_on_lambda);
     maxxecu_can_set_gear_callback(dash_on_gear);
+    maxxecu_can_set_map_callback(dash_on_map);
+    maxxecu_can_set_battery_callback(dash_on_battery);
+    maxxecu_can_set_iat_callback(dash_on_iat);
+    maxxecu_can_set_coolant_callback(dash_on_coolant);
+    maxxecu_can_set_oil_temp_callback(dash_on_oil_temp);
     maxxecu_can_start();
 }
