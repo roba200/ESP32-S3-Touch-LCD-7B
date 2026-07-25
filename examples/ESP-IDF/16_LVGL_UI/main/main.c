@@ -12,8 +12,60 @@ static const char *TAG = "main"; // Tag used for ESP log output
 // (matches the CAN simulator's redline_rpm; change to your ECU's redline).
 #define DASH_REDLINE_RPM 7000
 
+// How often the UI polls the latest CAN values and repaints. Deliberately
+// decoupled from the CAN frame rate (see dash_latest_* below) - a widget
+// update this doesn't need to run at 50 Hz to look smooth.
+#define DASH_UI_REFRESH_PERIOD_MS 50
+
+// Latest decoded values, written by the CAN RX task's callbacks and read by
+// dash_ui_timer_cb() on the LVGL task. Plain statics are fine here: single
+// writer, single reader, word-sized scalars - no tearing on this CPU, and no
+// lock needed. Deliberately NOT touching LVGL from the CAN task's callbacks:
+// lv_slider_set_value()/lv_label_set_text() would need lvgl_port_lock(-1),
+// which blocks indefinitely whenever the LVGL task is mid-render (an
+// 800x480 RGB panel flush can take a few ms). With RPM+Lambda+Speed at
+// 50 Hz and Gear at 10 Hz, that stalled the CAN task's twai_receive() loop
+// often enough to overflow the driver's RX queue and silently drop frames -
+// visible as gaps in the raw per-frame gear log, not just a slow-to-update
+// screen. Callbacks now just store a value and return immediately.
+static volatile int16_t dash_latest_rpm = 0;
+static volatile float dash_latest_speed_kmh = 0.0f;
+static volatile float dash_latest_lambda = 0.0f;
+static volatile int16_t dash_latest_gear = 0;
+
 static void dash_on_rpm(int16_t rpm)
 {
+    dash_latest_rpm = rpm;
+}
+
+static void dash_on_speed(float speed_kmh)
+{
+    dash_latest_speed_kmh = speed_kmh;
+}
+
+static void dash_on_lambda(float lambda)
+{
+    dash_latest_lambda = lambda;
+}
+
+static void dash_on_gear(int16_t gear)
+{
+    dash_latest_gear = gear;
+}
+
+// lv_label_set_text_fmt() goes through LVGL's own printf, which has
+// LV_SPRINTF_USE_FLOAT off in this project's config - %f prints as a bare
+// "f". Format floats with the real libc snprintf instead.
+//
+// Runs as an lv_timer callback, i.e. from inside lv_timer_handler() on the
+// LVGL task, which already holds the LVGL port lock while it does so (see
+// lvgl_port_task() in lvgl_port.c) - no manual lock/unlock needed here.
+static void dash_ui_timer_cb(lv_timer_t *timer)
+{
+    LV_UNUSED(timer);
+    char buf[16];
+
+    int16_t rpm = dash_latest_rpm;
     if (rpm < 0)
     {
         rpm = 0;
@@ -22,60 +74,26 @@ static void dash_on_rpm(int16_t rpm)
     {
         rpm = DASH_REDLINE_RPM;
     }
-    int32_t slider_value = ((int32_t)rpm * 1000) / DASH_REDLINE_RPM;
+    lv_slider_set_value(ui_RPMSlider, ((int32_t)rpm * 1000) / DASH_REDLINE_RPM, LV_ANIM_OFF);
 
-    if (lvgl_port_lock(-1))
+    snprintf(buf, sizeof(buf), "%.0f", dash_latest_speed_kmh);
+    lv_label_set_text(ui_SpeedValue, buf);
+
+    snprintf(buf, sizeof(buf), "%.2f", dash_latest_lambda);
+    lv_label_set_text(ui_LambdaValue, buf);
+
+    int16_t gear = dash_latest_gear;
+    if (gear < 0)
     {
-        lv_slider_set_value(ui_RPMSlider, slider_value, LV_ANIM_OFF);
-        lvgl_port_unlock();
+        lv_label_set_text(ui_GearShiftValue, "R");
     }
-}
-
-// lv_label_set_text_fmt() goes through LVGL's own printf, which has
-// LV_SPRINTF_USE_FLOAT off in this project's config - %f prints as a bare
-// "f". Format floats with the real libc snprintf instead.
-
-static void dash_on_speed(float speed_kmh)
-{
-    char buf[16];
-    snprintf(buf, sizeof(buf), "%.0f", speed_kmh);
-
-    if (lvgl_port_lock(-1))
+    else if (gear == 0)
     {
-        lv_label_set_text(ui_SpeedValue, buf);
-        lvgl_port_unlock();
+        lv_label_set_text(ui_GearShiftValue, "N");
     }
-}
-
-static void dash_on_lambda(float lambda)
-{
-    char buf[16];
-    snprintf(buf, sizeof(buf), "%.2f", lambda);
-
-    if (lvgl_port_lock(-1))
+    else
     {
-        lv_label_set_text(ui_LambdaValue, buf);
-        lvgl_port_unlock();
-    }
-}
-
-static void dash_on_gear(int16_t gear)
-{
-    if (lvgl_port_lock(-1))
-    {
-        if (gear < 0)
-        {
-            lv_label_set_text(ui_GearShiftValue, "R");
-        }
-        else if (gear == 0)
-        {
-            lv_label_set_text(ui_GearShiftValue, "N");
-        }
-        else
-        {
-            lv_label_set_text_fmt(ui_GearShiftValue, "%d", gear);
-        }
-        lvgl_port_unlock();
+        lv_label_set_text_fmt(ui_GearShiftValue, "%d", gear);
     }
 }
 
@@ -148,6 +166,10 @@ void app_main()
         // This sets up the user interface elements using the LVGL library.
         ui_init();
         start_splash_slider_anim();
+
+        // Periodic repaint of the live CAN channel widgets, decoupled from
+        // the CAN RX task - see dash_ui_timer_cb() for why.
+        lv_timer_create(dash_ui_timer_cb, DASH_UI_REFRESH_PERIOD_MS, NULL);
 
         // Release the mutex after LVGL operations are complete
         // This allows other tasks to access the LVGL port.
