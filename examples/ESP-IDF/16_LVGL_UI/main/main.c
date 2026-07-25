@@ -2,8 +2,32 @@
 #include "gt911.h"        // Header for touch screen operations (GT911)
 #include "lvgl_port.h"    // Header for LVGL port initialization and locking
 #include "ui.h"           // Header for user interface initialization
+#include "maxxecu_can.h"  // Header for the MaxxECU CAN log stream
 
 static const char *TAG = "main"; // Tag used for ESP log output
+
+// Redline used to scale the live RPM value onto ui_RPMSlider's 0-1000 range
+// (matches the CAN simulator's redline_rpm; change to your ECU's redline).
+#define DASH_REDLINE_RPM 7000
+
+static void dash_on_rpm(int16_t rpm)
+{
+    if (rpm < 0)
+    {
+        rpm = 0;
+    }
+    else if (rpm > DASH_REDLINE_RPM)
+    {
+        rpm = DASH_REDLINE_RPM;
+    }
+    int32_t slider_value = ((int32_t)rpm * 1000) / DASH_REDLINE_RPM;
+
+    if (lvgl_port_lock(-1))
+    {
+        lv_slider_set_value(ui_RPMSlider, slider_value, LV_ANIM_OFF);
+        lvgl_port_unlock();
+    }
+}
 
 static void splash_slider_anim_cb(void *var, int32_t value)
 {
@@ -79,4 +103,9 @@ void app_main()
         // This allows other tasks to access the LVGL port.
         lvgl_port_unlock();
     }
+
+    // Start the MaxxECU CAN log stream (relies on the IO extension / I2C
+    // bus already brought up by touch_gt911_init() above).
+    maxxecu_can_set_rpm_callback(dash_on_rpm);
+    maxxecu_can_start();
 }
