@@ -401,7 +401,9 @@ static void dash_navigation_init(void)
 #define ANALOG_NEEDLE_MIN_DEG (-1200)
 #define ANALOG_NEEDLE_MAX_DEG 1200
 
-static int32_t dash_needle_angle(float value, float range_min, float range_max)
+// Shared by the needle gauges below and AllChannelsScreen's progress bars -
+// how far value sits between range_min and range_max, clamped to [0,1].
+static float dash_fraction_in_range(float value, float range_min, float range_max)
 {
     if (value < range_min)
     {
@@ -411,7 +413,12 @@ static int32_t dash_needle_angle(float value, float range_min, float range_max)
     {
         value = range_max;
     }
-    float frac = (range_max > range_min) ? (value - range_min) / (range_max - range_min) : 0.0f;
+    return (range_max > range_min) ? (value - range_min) / (range_max - range_min) : 0.0f;
+}
+
+static int32_t dash_needle_angle(float value, float range_min, float range_max)
+{
+    float frac = dash_fraction_in_range(value, range_min, range_max);
     return ANALOG_NEEDLE_MIN_DEG + (int32_t)(frac * (ANALOG_NEEDLE_MAX_DEG - ANALOG_NEEDLE_MIN_DEG));
 }
 
@@ -527,6 +534,83 @@ static void dash_analog_cluster_init(void)
                                  ui_LowLevel3, ui_MidLevel2, ui_HighLevel3, MAXXECU_CH_OIL_TEMP);
 }
 
+// ---- AllChannelsScreen: all 24 channels at once, one fixed row each ----
+// Unlike MainScreen's tiles / AnalogCluster's gauges, nothing here is tap-
+// cycled - tile N (1-based) is permanently maxxecu_channel_id_t (N-1), i.e.
+// enum declaration order, and ui_Container18 (the row-wrapping flex
+// container these live in) scrolls to reach whatever doesn't fit on one
+// screen. Each row's Bar is a plain 0-100 lv_bar showing the value's
+// position within that channel's range_min/range_max.
+typedef struct {
+    lv_obj_t *label;
+    lv_obj_t *value;
+    lv_obj_t *symbol;
+    lv_obj_t *bar;
+} dash_all_channels_tile_t;
+
+static dash_all_channels_tile_t dash_all_tiles[MAXXECU_CH_COUNT];
+
+static void dash_all_channels_init(void)
+{
+    lv_obj_t *labels[MAXXECU_CH_COUNT] = {
+        ui_AuxChannelLabel1,  ui_AuxChannelLabel2,  ui_AuxChannelLabel3,  ui_AuxChannelLabel4,
+        ui_AuxChannelLabel5,  ui_AuxChannelLabel6,  ui_AuxChannelLabel7,  ui_AuxChannelLabel8,
+        ui_AuxChannelLabel9,  ui_AuxChannelLabel10, ui_AuxChannelLabel11, ui_AuxChannelLabel12,
+        ui_AuxChannelLabel13, ui_AuxChannelLabel14, ui_AuxChannelLabel15, ui_AuxChannelLabel16,
+        ui_AuxChannelLabel17, ui_AuxChannelLabel18, ui_AuxChannelLabel19, ui_AuxChannelLabel20,
+        ui_AuxChannelLabel21, ui_AuxChannelLabel22, ui_AuxChannelLabel23, ui_AuxChannelLabel24,
+    };
+    lv_obj_t *values[MAXXECU_CH_COUNT] = {
+        ui_AuxChannelValue1,  ui_AuxChannelValue2,  ui_AuxChannelValue3,  ui_AuxChannelValue4,
+        ui_AuxChannelValue5,  ui_AuxChannelValue6,  ui_AuxChannelValue7,  ui_AuxChannelValue8,
+        ui_AuxChannelValue9,  ui_AuxChannelValue10, ui_AuxChannelValue11, ui_AuxChannelValue12,
+        ui_AuxChannelValue13, ui_AuxChannelValue14, ui_AuxChannelValue15, ui_AuxChannelValue16,
+        ui_AuxChannelValue17, ui_AuxChannelValue18, ui_AuxChannelValue19, ui_AuxChannelValue20,
+        ui_AuxChannelValue21, ui_AuxChannelValue22, ui_AuxChannelValue23, ui_AuxChannelValue24,
+    };
+    lv_obj_t *symbols[MAXXECU_CH_COUNT] = {
+        ui_AuxChannelSymbol1,  ui_AuxChannelSymbol2,  ui_AuxChannelSymbol3,  ui_AuxChannelSymbol4,
+        ui_AuxChannelSymbol5,  ui_AuxChannelSymbol6,  ui_AuxChannelSymbol7,  ui_AuxChannelSymbol8,
+        ui_AuxChannelSymbol9,  ui_AuxChannelSymbol10, ui_AuxChannelSymbol11, ui_AuxChannelSymbol12,
+        ui_AuxChannelSymbol13, ui_AuxChannelSymbol14, ui_AuxChannelSymbol15, ui_AuxChannelSymbol16,
+        ui_AuxChannelSymbol17, ui_AuxChannelSymbol18, ui_AuxChannelSymbol19, ui_AuxChannelSymbol20,
+        ui_AuxChannelSymbol21, ui_AuxChannelSymbol22, ui_AuxChannelSymbol23, ui_AuxChannelSymbol24,
+    };
+    lv_obj_t *bars[MAXXECU_CH_COUNT] = {
+        ui_AuxChannelBar1,  ui_AuxChannelBar2,  ui_AuxChannelBar3,  ui_AuxChannelBar4,
+        ui_AuxChannelBar5,  ui_AuxChannelBar6,  ui_AuxChannelBar7,  ui_AuxChannelBar8,
+        ui_AuxChannelBar9,  ui_AuxChannelBar10, ui_AuxChannelBar11, ui_AuxChannelBar12,
+        ui_AuxChannelBar13, ui_AuxChannelBar14, ui_AuxChannelBar15, ui_AuxChannelBar16,
+        ui_AuxChannelBar17, ui_AuxChannelBar18, ui_AuxChannelBar19, ui_AuxChannelBar20,
+        ui_AuxChannelBar21, ui_AuxChannelBar22, ui_AuxChannelBar23, ui_AuxChannelBar24,
+    };
+
+    for (int ch = 0; ch < MAXXECU_CH_COUNT; ch++)
+    {
+        dash_all_tiles[ch].label = labels[ch];
+        dash_all_tiles[ch].value = values[ch];
+        dash_all_tiles[ch].symbol = symbols[ch];
+        dash_all_tiles[ch].bar = bars[ch];
+        lv_label_set_text(labels[ch], dash_channels[ch].name);
+        lv_label_set_text(symbols[ch], dash_channel_symbol(ch));
+    }
+}
+
+static void dash_all_channels_refresh(void)
+{
+    for (int ch = 0; ch < MAXXECU_CH_COUNT; ch++)
+    {
+        const dash_channel_def_t *def = &dash_channels[ch];
+        char buf[16];
+
+        dash_format_value(ch, dash_latest[ch], buf, sizeof(buf));
+        lv_label_set_text(dash_all_tiles[ch].value, buf);
+
+        float frac = dash_fraction_in_range(dash_latest[ch], def->range_min, def->range_max);
+        lv_bar_set_value(dash_all_tiles[ch].bar, (int32_t)(frac * 100.0f), LV_ANIM_OFF);
+    }
+}
+
 // lv_label_set_text_fmt() goes through LVGL's own printf, which has
 // LV_SPRINTF_USE_FLOAT off in this project's config - %f prints as a bare
 // "f". Format floats with the real libc snprintf instead (dash_format_value
@@ -599,6 +683,9 @@ static void dash_ui_timer_cb(lv_timer_t *timer)
     {
         dash_analog_gauge_refresh_value(&dash_analog_tiles[i]);
     }
+
+    // AllChannelsScreen: all 24 rows, every tick.
+    dash_all_channels_refresh();
 }
 
 static void splash_slider_anim_cb(void *var, int32_t value)
@@ -678,6 +765,9 @@ void app_main()
         // AnalogClusterScreen: top Speed/RPM gauges + RPM bars always on,
         // bottom 3 gauges tap-cycled.
         dash_analog_cluster_init();
+
+        // AllChannelsScreen: all 24 channels, one fixed row each.
+        dash_all_channels_init();
 
         // Each screen's SettingsBtn -> Settings, Settings' 3 buttons -> screens.
         dash_navigation_init();
