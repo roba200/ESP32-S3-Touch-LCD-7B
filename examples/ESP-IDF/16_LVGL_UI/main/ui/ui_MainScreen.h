@@ -3,8 +3,8 @@
 // LVGL version: 8.3.11
 // Project name: SquareLine_Project
 
-#ifndef UI_MAINSCREEN
-#define UI_MAINSCREEN
+#ifndef UI_MAINSCREEN_H
+#define UI_MAINSCREEN_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,11 +44,13 @@ extern lv_obj_t * ui_Label15;
 extern lv_obj_t * ui_Container5;
 extern lv_obj_t * ui_DigitalChannel3;
 extern lv_obj_t * ui_DigitalChannel4;
+extern lv_obj_t * ui_Container64;
+extern lv_obj_t * ui_SettingsBtn1;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
 
-#endif /* UI_MAINSCREEN */
+#endif
 

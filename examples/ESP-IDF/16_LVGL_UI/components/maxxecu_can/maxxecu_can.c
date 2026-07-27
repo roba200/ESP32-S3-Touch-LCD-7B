@@ -69,78 +69,56 @@ static esp_err_t maxxecu_twai_bus_init(void)
 }
 
 // MaxxECU standard broadcast frame IDs (11-bit)
-#define ID_RPM_MAP_LAMBDA 0x520
-#define ID_SPEED 0x522
-#define ID_BATT_IAT_COOLANT 0x530
-#define ID_GEAR_OILTEMP 0x536
+#define ID_FAST1_RPM_TPS_MAP_LAMBDA 0x520
+#define ID_FAST2_LAMBDA_A_IGNTIMING 0x521
+#define ID_FAST3_INJPW_INJDUTY_SPEED 0x522
+#define ID_SLOW1_BATT_IAT_COOLANT 0x530
+#define ID_SLOW2_ETHANOL_EGT1 0x531
+#define ID_SLOW3_EGT2_3_4 0x532
+#define ID_SLOW7_GEAR_OILPRESS_OILTEMP 0x536
+#define ID_SLOW8_FUELPRESS_COOLANTPRESS 0x537
+#define ID_SLOW11_TRANSTEMP_DIFFTEMP 0x540
 
-// Rate limit for the decoded summary lines, per CAN ID
+// Rate limit for the decoded summary lines, one slot per frame ID handled
+// below (in the same order as the switch statement).
 #define DECODE_PRINT_PERIOD_TICKS pdMS_TO_TICKS(1000)
+enum
+{
+    PRINT_SLOT_FAST1,
+    PRINT_SLOT_FAST2,
+    PRINT_SLOT_FAST3,
+    PRINT_SLOT_SLOW1,
+    PRINT_SLOT_SLOW2,
+    PRINT_SLOT_SLOW3,
+    PRINT_SLOT_SLOW7,
+    PRINT_SLOT_SLOW8,
+    PRINT_SLOT_SLOW11,
+    PRINT_SLOT_COUNT,
+};
 
 static inline int16_t le_i16(const uint8_t *b)
 {
     return (int16_t)((uint16_t)b[0] | ((uint16_t)b[1] << 8));
 }
 
-static maxxecu_can_rpm_cb_t s_rpm_cb = NULL;
-static maxxecu_can_speed_cb_t s_speed_cb = NULL;
-static maxxecu_can_lambda_cb_t s_lambda_cb = NULL;
-static maxxecu_can_gear_cb_t s_gear_cb = NULL;
-static maxxecu_can_map_cb_t s_map_cb = NULL;
-static maxxecu_can_battery_cb_t s_battery_cb = NULL;
-static maxxecu_can_iat_cb_t s_iat_cb = NULL;
-static maxxecu_can_coolant_cb_t s_coolant_cb = NULL;
-static maxxecu_can_oil_temp_cb_t s_oil_temp_cb = NULL;
+static maxxecu_can_channel_cb_t s_channel_cb = NULL;
 
-void maxxecu_can_set_rpm_callback(maxxecu_can_rpm_cb_t cb)
+void maxxecu_can_set_channel_callback(maxxecu_can_channel_cb_t cb)
 {
-    s_rpm_cb = cb;
+    s_channel_cb = cb;
 }
 
-void maxxecu_can_set_speed_callback(maxxecu_can_speed_cb_t cb)
+static inline void emit(maxxecu_channel_id_t channel, float value)
 {
-    s_speed_cb = cb;
-}
-
-void maxxecu_can_set_lambda_callback(maxxecu_can_lambda_cb_t cb)
-{
-    s_lambda_cb = cb;
-}
-
-void maxxecu_can_set_gear_callback(maxxecu_can_gear_cb_t cb)
-{
-    s_gear_cb = cb;
-}
-
-void maxxecu_can_set_map_callback(maxxecu_can_map_cb_t cb)
-{
-    s_map_cb = cb;
-}
-
-void maxxecu_can_set_battery_callback(maxxecu_can_battery_cb_t cb)
-{
-    s_battery_cb = cb;
-}
-
-void maxxecu_can_set_iat_callback(maxxecu_can_iat_cb_t cb)
-{
-    s_iat_cb = cb;
-}
-
-void maxxecu_can_set_coolant_callback(maxxecu_can_coolant_cb_t cb)
-{
-    s_coolant_cb = cb;
-}
-
-void maxxecu_can_set_oil_temp_callback(maxxecu_can_oil_temp_cb_t cb)
-{
-    s_oil_temp_cb = cb;
+    if (s_channel_cb)
+    {
+        s_channel_cb(channel, value);
+    }
 }
 
 static void decode_and_print(const twai_message_t *msg)
 {
-    // One rate-limit slot per known ID, in the same order as the switch below
-    static TickType_t last_print_tick[4] = {0};
+    static TickType_t last_print_tick[PRINT_SLOT_COUNT] = {0};
     TickType_t now = xTaskGetTickCount();
 
     if (msg->data_length_code < 8)
@@ -150,103 +128,166 @@ static void decode_and_print(const twai_message_t *msg)
 
     switch (msg->identifier)
     {
-    case ID_RPM_MAP_LAMBDA:
+    case ID_FAST1_RPM_TPS_MAP_LAMBDA:
     {
         int16_t rpm = le_i16(&msg->data[0]);
+        float tps = le_i16(&msg->data[2]) * 0.1f;
         float map_kpa = le_i16(&msg->data[4]) * 0.1f;
         float lambda = le_i16(&msg->data[6]) * 0.001f;
 
         // Fire every frame (~50 Hz) so UI gauges stay smooth, independent of
         // the once-a-second console print below.
-        if (s_rpm_cb)
-        {
-            s_rpm_cb(rpm);
-        }
-        if (s_map_cb)
-        {
-            s_map_cb(map_kpa);
-        }
-        if (s_lambda_cb)
-        {
-            s_lambda_cb(lambda);
-        }
+        emit(MAXXECU_CH_RPM, (float)rpm);
+        emit(MAXXECU_CH_TPS, tps);
+        emit(MAXXECU_CH_MAP, map_kpa);
+        emit(MAXXECU_CH_LAMBDA, lambda);
 
-        if (now - last_print_tick[0] >= DECODE_PRINT_PERIOD_TICKS)
+        if (now - last_print_tick[PRINT_SLOT_FAST1] >= DECODE_PRINT_PERIOD_TICKS)
         {
-            printf("  RPM=%d  MAP=%.1f kPa  Lambda=%.3f\n", rpm, map_kpa, lambda);
-            last_print_tick[0] = now;
+            printf("  RPM=%d  TPS=%.1f%%  MAP=%.1f kPa  Lambda=%.3f\n", rpm, tps, map_kpa, lambda);
+            last_print_tick[PRINT_SLOT_FAST1] = now;
         }
         break;
     }
 
-    case ID_SPEED:
+    case ID_FAST2_LAMBDA_A_IGNTIMING:
     {
+        float lambda_a = le_i16(&msg->data[0]) * 0.001f;
+        float ign_timing = le_i16(&msg->data[4]) * 0.1f;
+
+        emit(MAXXECU_CH_LAMBDA_A, lambda_a);
+        emit(MAXXECU_CH_IGNITION_TIMING, ign_timing);
+
+        if (now - last_print_tick[PRINT_SLOT_FAST2] >= DECODE_PRINT_PERIOD_TICKS)
+        {
+            printf("  LambdaA=%.3f  IgnTiming=%.1f deg\n", lambda_a, ign_timing);
+            last_print_tick[PRINT_SLOT_FAST2] = now;
+        }
+        break;
+    }
+
+    case ID_FAST3_INJPW_INJDUTY_SPEED:
+    {
+        float inj_pw = le_i16(&msg->data[0]) * 0.001f;
+        float inj_duty = le_i16(&msg->data[2]) * 0.1f;
         float speed_kmh = le_i16(&msg->data[6]) * 0.1f;
 
-        if (s_speed_cb)
-        {
-            s_speed_cb(speed_kmh);
-        }
+        emit(MAXXECU_CH_INJ_PW, inj_pw);
+        emit(MAXXECU_CH_INJ_DUTY, inj_duty);
+        emit(MAXXECU_CH_SPEED, speed_kmh);
 
-        if (now - last_print_tick[1] >= DECODE_PRINT_PERIOD_TICKS)
+        if (now - last_print_tick[PRINT_SLOT_FAST3] >= DECODE_PRINT_PERIOD_TICKS)
         {
-            printf("  Speed=%.1f km/h\n", speed_kmh);
-            last_print_tick[1] = now;
+            printf("  InjPW=%.3f ms  InjDuty=%.1f%%  Speed=%.1f km/h\n", inj_pw, inj_duty, speed_kmh);
+            last_print_tick[PRINT_SLOT_FAST3] = now;
         }
         break;
     }
 
-    case ID_BATT_IAT_COOLANT:
+    case ID_SLOW1_BATT_IAT_COOLANT:
     {
         float battery_v = le_i16(&msg->data[0]) * 0.01f;
         float iat_c = le_i16(&msg->data[4]) * 0.1f;
         float coolant_c = le_i16(&msg->data[6]) * 0.1f;
 
-        if (s_battery_cb)
-        {
-            s_battery_cb(battery_v);
-        }
-        if (s_iat_cb)
-        {
-            s_iat_cb(iat_c);
-        }
-        if (s_coolant_cb)
-        {
-            s_coolant_cb(coolant_c);
-        }
+        emit(MAXXECU_CH_BATTERY, battery_v);
+        emit(MAXXECU_CH_IAT, iat_c);
+        emit(MAXXECU_CH_COOLANT, coolant_c);
 
-        if (now - last_print_tick[2] >= DECODE_PRINT_PERIOD_TICKS)
+        if (now - last_print_tick[PRINT_SLOT_SLOW1] >= DECODE_PRINT_PERIOD_TICKS)
         {
             printf("  Battery=%.2f V  IAT=%.1f C  Coolant=%.1f C\n", battery_v, iat_c, coolant_c);
-            last_print_tick[2] = now;
+            last_print_tick[PRINT_SLOT_SLOW1] = now;
         }
         break;
     }
 
-    case ID_GEAR_OILTEMP:
+    case ID_SLOW2_ETHANOL_EGT1:
+    {
+        float ethanol = le_i16(&msg->data[2]) * 0.1f;
+        float egt1 = (float)le_i16(&msg->data[6]);
+
+        emit(MAXXECU_CH_ETHANOL, ethanol);
+        emit(MAXXECU_CH_EGT1, egt1);
+
+        if (now - last_print_tick[PRINT_SLOT_SLOW2] >= DECODE_PRINT_PERIOD_TICKS)
+        {
+            printf("  Ethanol=%.1f%%  EGT1=%.0f C\n", ethanol, egt1);
+            last_print_tick[PRINT_SLOT_SLOW2] = now;
+        }
+        break;
+    }
+
+    case ID_SLOW3_EGT2_3_4:
+    {
+        float egt2 = (float)le_i16(&msg->data[0]);
+        float egt3 = (float)le_i16(&msg->data[2]);
+        float egt4 = (float)le_i16(&msg->data[4]);
+
+        emit(MAXXECU_CH_EGT2, egt2);
+        emit(MAXXECU_CH_EGT3, egt3);
+        emit(MAXXECU_CH_EGT4, egt4);
+
+        if (now - last_print_tick[PRINT_SLOT_SLOW3] >= DECODE_PRINT_PERIOD_TICKS)
+        {
+            printf("  EGT2=%.0f C  EGT3=%.0f C  EGT4=%.0f C\n", egt2, egt3, egt4);
+            last_print_tick[PRINT_SLOT_SLOW3] = now;
+        }
+        break;
+    }
+
+    case ID_SLOW7_GEAR_OILPRESS_OILTEMP:
     {
         int16_t gear = le_i16(&msg->data[0]);
+        float oil_press_bar = le_i16(&msg->data[4]) * 0.001f;
         float oil_temp_c = le_i16(&msg->data[6]) * 0.1f;
 
-        if (s_gear_cb)
-        {
-            s_gear_cb(gear);
-        }
-        if (s_oil_temp_cb)
-        {
-            s_oil_temp_cb(oil_temp_c);
-        }
+        emit(MAXXECU_CH_GEAR, (float)gear);
+        emit(MAXXECU_CH_OIL_PRESSURE, oil_press_bar);
+        emit(MAXXECU_CH_OIL_TEMP, oil_temp_c);
 
-        if (now - last_print_tick[3] >= DECODE_PRINT_PERIOD_TICKS)
+        if (now - last_print_tick[PRINT_SLOT_SLOW7] >= DECODE_PRINT_PERIOD_TICKS)
         {
-            printf("  Gear=%d  OilTemp=%.1f C\n", gear, oil_temp_c);
-            last_print_tick[3] = now;
+            printf("  Gear=%d  OilPressure=%.3f bar  OilTemp=%.1f C\n", gear, oil_press_bar, oil_temp_c);
+            last_print_tick[PRINT_SLOT_SLOW7] = now;
+        }
+        break;
+    }
+
+    case ID_SLOW8_FUELPRESS_COOLANTPRESS:
+    {
+        float fuel_press_bar = le_i16(&msg->data[0]) * 0.001f;
+        float coolant_press_bar = le_i16(&msg->data[4]) * 0.001f;
+
+        emit(MAXXECU_CH_FUEL_PRESSURE, fuel_press_bar);
+        emit(MAXXECU_CH_COOLANT_PRESSURE, coolant_press_bar);
+
+        if (now - last_print_tick[PRINT_SLOT_SLOW8] >= DECODE_PRINT_PERIOD_TICKS)
+        {
+            printf("  FuelPressure=%.3f bar  CoolantPressure=%.3f bar\n", fuel_press_bar, coolant_press_bar);
+            last_print_tick[PRINT_SLOT_SLOW8] = now;
+        }
+        break;
+    }
+
+    case ID_SLOW11_TRANSTEMP_DIFFTEMP:
+    {
+        float trans_temp_c = le_i16(&msg->data[4]) * 0.1f;
+        float diff_temp_c = le_i16(&msg->data[6]) * 0.1f;
+
+        emit(MAXXECU_CH_TRANS_TEMP, trans_temp_c);
+        emit(MAXXECU_CH_DIFF_TEMP, diff_temp_c);
+
+        if (now - last_print_tick[PRINT_SLOT_SLOW11] >= DECODE_PRINT_PERIOD_TICKS)
+        {
+            printf("  TransTemp=%.1f C  DiffTemp=%.1f C\n", trans_temp_c, diff_temp_c);
+            last_print_tick[PRINT_SLOT_SLOW11] = now;
         }
         break;
     }
 
     default:
-        // Unknown IDs are printed raw only, nothing more to decode.
+        // Unknown/unhandled IDs are printed raw only, nothing more to decode.
         break;
     }
 }

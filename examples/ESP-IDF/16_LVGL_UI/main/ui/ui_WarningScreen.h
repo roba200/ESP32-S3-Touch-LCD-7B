@@ -29,6 +29,8 @@ extern lv_obj_t * ui_Container78;
 extern lv_obj_t * ui_ChannelValue;
 extern lv_obj_t * ui_WarningRange;
 extern lv_obj_t * ui_WarningDot;
+extern lv_obj_t * ui_Container56;
+extern lv_obj_t * ui_SettingsBtn4;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

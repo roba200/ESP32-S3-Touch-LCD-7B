@@ -56,6 +56,8 @@ extern lv_obj_t * ui_LowLevel3;
 extern lv_obj_t * ui_HighLevel3;
 extern lv_obj_t * ui_Container26;
 extern lv_obj_t * ui_AnalogGaugeName3;
+extern lv_obj_t * ui_Container57;
+extern lv_obj_t * ui_SettingsBtn2;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

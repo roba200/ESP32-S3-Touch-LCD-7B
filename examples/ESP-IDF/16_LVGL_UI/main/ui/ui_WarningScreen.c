@@ -21,6 +21,8 @@ lv_obj_t * ui_Container78 = NULL;
 lv_obj_t * ui_ChannelValue = NULL;
 lv_obj_t * ui_WarningRange = NULL;
 lv_obj_t * ui_WarningDot = NULL;
+lv_obj_t * ui_Container56 = NULL;
+lv_obj_t * ui_SettingsBtn4 = NULL;
 // event funtions
 
 // build funtions
@@ -78,7 +80,7 @@ void ui_WarningScreen_screen_init(void)
     ui_Container74 = lv_obj_create(ui_WarningScreen);
     lv_obj_remove_style_all(ui_Container74);
     lv_obj_set_width(ui_Container74, 1024);
-    lv_obj_set_height(ui_Container74, 453);
+    lv_obj_set_height(ui_Container74, 435);
     lv_obj_set_align(ui_Container74, LV_ALIGN_CENTER);
     lv_obj_set_flex_flow(ui_Container74, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(ui_Container74, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
@@ -206,6 +208,24 @@ void ui_WarningScreen_screen_init(void)
     lv_obj_set_style_bg_color(ui_WarningDot, lv_color_hex(0xF5A623), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_WarningDot, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    ui_Container56 = lv_obj_create(ui_WarningScreen);
+    lv_obj_remove_style_all(ui_Container56);
+    lv_obj_set_width(ui_Container56, 1019);
+    lv_obj_set_height(ui_Container56, 31);
+    lv_obj_set_x(ui_Container56, -7);
+    lv_obj_set_y(ui_Container56, 324);
+    lv_obj_set_align(ui_Container56, LV_ALIGN_CENTER);
+    lv_obj_set_flex_flow(ui_Container56, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(ui_Container56, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+    lv_obj_clear_flag(ui_Container56, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_SettingsBtn4 = lv_btn_create(ui_Container56);
+    lv_obj_set_width(ui_SettingsBtn4, 40);
+    lv_obj_set_height(ui_SettingsBtn4, 30);
+    lv_obj_set_align(ui_SettingsBtn4, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_SettingsBtn4, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_clear_flag(ui_SettingsBtn4, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
 }
 
 void ui_WarningScreen_screen_destroy(void)
@@ -229,5 +249,7 @@ void ui_WarningScreen_screen_destroy(void)
     ui_ChannelValue = NULL;
     ui_WarningRange = NULL;
     ui_WarningDot = NULL;
+    ui_Container56 = NULL;
+    ui_SettingsBtn4 = NULL;
 
 }
