@@ -12,6 +12,8 @@ lv_obj_t * ui_AnalogClusterBtn = NULL;
 lv_obj_t * ui_Label34 = NULL;
 lv_obj_t * ui_FullDataBtn = NULL;
 lv_obj_t * ui_Label35 = NULL;
+lv_obj_t * ui_WarningBtn = NULL;
+lv_obj_t * ui_Label9 = NULL;
 // event funtions
 
 // build funtions
@@ -66,6 +68,21 @@ void ui_SettingsScreen_screen_init(void)
     lv_obj_set_align(ui_Label35, LV_ALIGN_CENTER);
     lv_label_set_text(ui_Label35, "FULL DATA GRID");
 
+    ui_WarningBtn = lv_btn_create(ui_SettingsScreen);
+    lv_obj_set_width(ui_WarningBtn, 183);
+    lv_obj_set_height(ui_WarningBtn, 50);
+    lv_obj_set_x(ui_WarningBtn, 76);
+    lv_obj_set_y(ui_WarningBtn, 126);
+    lv_obj_set_align(ui_WarningBtn, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_WarningBtn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
+    lv_obj_clear_flag(ui_WarningBtn, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_Label9 = lv_label_create(ui_WarningBtn);
+    lv_obj_set_width(ui_Label9, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Label9, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Label9, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Label9, "Warning");
+
 }
 
 void ui_SettingsScreen_screen_destroy(void)
@@ -80,5 +97,7 @@ void ui_SettingsScreen_screen_destroy(void)
     ui_Label34 = NULL;
     ui_FullDataBtn = NULL;
     ui_Label35 = NULL;
+    ui_WarningBtn = NULL;
+    ui_Label9 = NULL;
 
 }

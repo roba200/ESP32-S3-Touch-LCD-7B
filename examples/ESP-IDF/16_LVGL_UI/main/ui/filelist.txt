@@ -12,6 +12,7 @@ ui_helpers.c
 ui_img_background_png.c
 ui_img_black_slider_png.c
 ui_img_red_slider_png.c
+ui_img_278417765.c
 ui_img_left_indicator_png.c
 ui_img_high_beam_png.c
 ui_img_low_beam_png.c

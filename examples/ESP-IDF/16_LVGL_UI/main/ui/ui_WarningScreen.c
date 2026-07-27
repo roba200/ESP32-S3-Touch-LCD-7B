@@ -129,7 +129,7 @@ void ui_WarningScreen_screen_init(void)
 
     ui_Container77 = lv_obj_create(ui_Container73);
     lv_obj_remove_style_all(ui_Container77);
-    lv_obj_set_width(ui_Container77, 163);
+    lv_obj_set_width(ui_Container77, 771);
     lv_obj_set_height(ui_Container77, 50);
     lv_obj_set_align(ui_Container77, LV_ALIGN_CENTER);
     lv_obj_set_flex_flow(ui_Container77, LV_FLEX_FLOW_COLUMN);
@@ -139,7 +139,7 @@ void ui_WarningScreen_screen_init(void)
     ui_WarningChannel = lv_label_create(ui_Container77);
     lv_obj_set_width(ui_WarningChannel, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_WarningChannel, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_WarningChannel, -3);
+    lv_obj_set_x(ui_WarningChannel, 3);
     lv_obj_set_y(ui_WarningChannel, 1);
     lv_obj_set_align(ui_WarningChannel, LV_ALIGN_CENTER);
     lv_label_set_text(ui_WarningChannel, "C O O L A N T");
@@ -220,11 +220,12 @@ void ui_WarningScreen_screen_init(void)
     lv_obj_clear_flag(ui_Container56, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_SettingsBtn4 = lv_btn_create(ui_Container56);
-    lv_obj_set_width(ui_SettingsBtn4, 40);
+    lv_obj_set_width(ui_SettingsBtn4, 30);
     lv_obj_set_height(ui_SettingsBtn4, 30);
     lv_obj_set_align(ui_SettingsBtn4, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_SettingsBtn4, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_SettingsBtn4, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_img_src(ui_SettingsBtn4, &ui_img_278417765, LV_PART_MAIN | LV_STATE_DEFAULT);
 
 }
 

@@ -380,11 +380,14 @@ void ui_MainScreen_screen_init(void)
     lv_obj_clear_flag(ui_Container64, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_SettingsBtn1 = lv_btn_create(ui_Container64);
-    lv_obj_set_width(ui_SettingsBtn1, 40);
+    lv_obj_set_width(ui_SettingsBtn1, 30);
     lv_obj_set_height(ui_SettingsBtn1, 30);
+    lv_obj_set_x(ui_SettingsBtn1, -15);
+    lv_obj_set_y(ui_SettingsBtn1, 0);
     lv_obj_set_align(ui_SettingsBtn1, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_SettingsBtn1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_SettingsBtn1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_img_src(ui_SettingsBtn1, &ui_img_278417765, LV_PART_MAIN | LV_STATE_DEFAULT);
 
 }
 

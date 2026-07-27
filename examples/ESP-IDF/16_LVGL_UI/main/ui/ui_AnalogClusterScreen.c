@@ -518,11 +518,12 @@ void ui_AnalogClusterScreen_screen_init(void)
     lv_obj_clear_flag(ui_Container57, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_SettingsBtn2 = lv_btn_create(ui_Container57);
-    lv_obj_set_width(ui_SettingsBtn2, 40);
+    lv_obj_set_width(ui_SettingsBtn2, 30);
     lv_obj_set_height(ui_SettingsBtn2, 30);
     lv_obj_set_align(ui_SettingsBtn2, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_SettingsBtn2, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_SettingsBtn2, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_img_src(ui_SettingsBtn2, &ui_img_278417765, LV_PART_MAIN | LV_STATE_DEFAULT);
 
 }
 

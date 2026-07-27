@@ -20,6 +20,8 @@ extern lv_obj_t * ui_AnalogClusterBtn;
 extern lv_obj_t * ui_Label34;
 extern lv_obj_t * ui_FullDataBtn;
 extern lv_obj_t * ui_Label35;
+extern lv_obj_t * ui_WarningBtn;
+extern lv_obj_t * ui_Label9;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

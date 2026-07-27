@@ -47,6 +47,7 @@ extern lv_obj_t * ui____initial_actions0;
 LV_IMG_DECLARE(ui_img_background_png);    // assets/background.png
 LV_IMG_DECLARE(ui_img_black_slider_png);    // assets/black_slider.png
 LV_IMG_DECLARE(ui_img_red_slider_png);    // assets/red_slider.png
+LV_IMG_DECLARE(ui_img_278417765);    // assets/setting (3).png
 LV_IMG_DECLARE(ui_img_left_indicator_png);    // assets/left_indicator.png
 LV_IMG_DECLARE(ui_img_high_beam_png);    // assets/high_beam.png
 LV_IMG_DECLARE(ui_img_low_beam_png);    // assets/low_beam.png

@@ -235,11 +235,6 @@ static uint8_t dash_cyclable_index_of(maxxecu_channel_id_t channel)
 // screen. The callback now just stores a value and returns immediately.
 static volatile float dash_latest[MAXXECU_CH_COUNT];
 
-// Set true/false (and logged on each transition, not spammed every tick)
-// once a channel crosses its warn_low/warn_high. Not wired to any UI action
-// yet - WarningScreen integration is a deliberate follow-up, not this pass.
-static volatile bool dash_warning_active[MAXXECU_CH_COUNT];
-
 // Set the first time any channel is successfully decoded off the bus - used
 // to hold SplashScreen up until a real CAN link exists (see
 // start_splash_slider_anim() / dash_ui_timer_cb()) instead of dismissing it
@@ -267,20 +262,118 @@ static const char *dash_channel_symbol(maxxecu_channel_id_t channel)
     return (dash_unit_system == DASH_UNITS_IMPERIAL) ? def->symbol_imperial : def->symbol_metric;
 }
 
-// Checked once per UI tick from dash_ui_timer_cb(). Native-unit comparison
-// throughout, so it's correct regardless of dash_unit_system.
+// "{min}-{max} {symbol}" in whichever unit system is active, e.g. "0-1.3 LA"
+// or "0-160 psi" - used for WarningScreen's per-row range readout.
+static void dash_format_range(maxxecu_channel_id_t channel, char *buf, size_t buf_size)
+{
+    const dash_channel_def_t *def = &dash_channels[channel];
+    char lo[16], hi[16];
+
+    dash_format_value(channel, def->range_min, lo, sizeof(lo));
+    dash_format_value(channel, def->range_max, hi, sizeof(hi));
+    snprintf(buf, buf_size, "%s-%s %s", lo, hi, dash_channel_symbol(channel));
+}
+
+// ---- Warning severity ----
+// Two tiers: CAUTION fires within a 10%-of-range margin before the real
+// warn_low/warn_high threshold; WARNING fires once actually past it. Both
+// LOW/HIGH variants exist so WarningScreen can show a directional detail
+// message ("BELOW MINIMUM" vs "APPROACHING HIGH LIMIT" etc).
+typedef enum {
+    DASH_SEVERITY_OK,
+    DASH_SEVERITY_CAUTION_LOW,
+    DASH_SEVERITY_CAUTION_HIGH,
+    DASH_SEVERITY_WARNING_LOW,
+    DASH_SEVERITY_WARNING_HIGH,
+} dash_severity_t;
+
+// 0 = ok, 1 = caution, 2 = warning - lets severity comparisons/merges (a
+// channel can have both a low and a high threshold) stay a simple max().
+static int dash_severity_rank(dash_severity_t s)
+{
+    switch (s)
+    {
+    case DASH_SEVERITY_WARNING_LOW:
+    case DASH_SEVERITY_WARNING_HIGH:
+        return 2;
+    case DASH_SEVERITY_CAUTION_LOW:
+    case DASH_SEVERITY_CAUTION_HIGH:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+static dash_severity_t dash_channel_severity(maxxecu_channel_id_t channel)
+{
+    const dash_channel_def_t *def = &dash_channels[channel];
+    float value = dash_latest[channel];
+    float margin = 0.10f * (def->range_max - def->range_min);
+    dash_severity_t severity = DASH_SEVERITY_OK;
+
+    if (def->has_warn_low)
+    {
+        if (value < def->warn_low)
+        {
+            severity = DASH_SEVERITY_WARNING_LOW;
+        }
+        else if (value < def->warn_low + margin && dash_severity_rank(severity) < 1)
+        {
+            severity = DASH_SEVERITY_CAUTION_LOW;
+        }
+    }
+    if (def->has_warn_high)
+    {
+        if (value > def->warn_high && dash_severity_rank(severity) < 2)
+        {
+            severity = DASH_SEVERITY_WARNING_HIGH;
+        }
+        else if (value > def->warn_high - margin && dash_severity_rank(severity) < 1)
+        {
+            severity = DASH_SEVERITY_CAUTION_HIGH;
+        }
+    }
+    return severity;
+}
+
+static const char *dash_severity_detail(dash_severity_t severity)
+{
+    switch (severity)
+    {
+    case DASH_SEVERITY_WARNING_LOW:
+        return "BELOW MINIMUM";
+    case DASH_SEVERITY_WARNING_HIGH:
+        return "ABOVE MAXIMUM";
+    case DASH_SEVERITY_CAUTION_LOW:
+        return "APPROACHING LOW LIMIT";
+    case DASH_SEVERITY_CAUTION_HIGH:
+        return "APPROACHING HIGH LIMIT";
+    default:
+        return "";
+    }
+}
+
+static lv_color_t dash_severity_color(dash_severity_t severity)
+{
+    return (dash_severity_rank(severity) >= 2) ? lv_color_hex(0xE11D2A) /* red, matches the redline labels
+                                                                            elsewhere in this UI */
+                                                : lv_color_hex(0xF5A623); /* orange, SquareLine's own warning color */
+}
+
+// Logged on each transition (not spammed every tick) purely for visibility
+// on the console - the actual UI display is WarningScreen, built below.
 static void dash_warnings_refresh(void)
 {
+    static dash_severity_t last_severity[MAXXECU_CH_COUNT];
+
     for (int ch = 0; ch < MAXXECU_CH_COUNT; ch++)
     {
-        const dash_channel_def_t *def = &dash_channels[ch];
-        float value = dash_latest[ch];
-        bool active = (def->has_warn_low && value < def->warn_low) || (def->has_warn_high && value > def->warn_high);
-
-        if (active != dash_warning_active[ch])
+        dash_severity_t severity = dash_channel_severity(ch);
+        if (severity != last_severity[ch])
         {
-            dash_warning_active[ch] = active;
-            ESP_LOGW(TAG, "%s: %s (value=%.3f)", def->short_name, active ? "WARNING" : "cleared", value);
+            last_severity[ch] = severity;
+            static const char *names[] = {"ok", "CAUTION", "CAUTION", "WARNING", "WARNING"};
+            ESP_LOGW(TAG, "%s: %s (value=%.3f)", dash_channels[ch].short_name, names[severity], dash_latest[ch]);
         }
     }
 }
@@ -374,9 +467,10 @@ static const dash_nav_target_t dash_nav_main = {&ui_MainScreen, ui_MainScreen_sc
 static const dash_nav_target_t dash_nav_analog_cluster = {&ui_AnalogClusterScreen, ui_AnalogClusterScreen_screen_init};
 static const dash_nav_target_t dash_nav_all_channels = {&ui_AllChannelsScreen, ui_AllChannelsScreen_screen_init};
 static const dash_nav_target_t dash_nav_settings = {&ui_SettingsScreen, ui_SettingsScreen_screen_init};
+static const dash_nav_target_t dash_nav_warning = {&ui_WarningScreen, ui_WarningScreen_screen_init};
 
 // Wires each screen's dedicated SettingsBtn -> Settings, and Settings' own
-// 3 buttons back out to those screens.
+// buttons back out to those screens (+ the new WarningBtn -> WarningScreen).
 static void dash_navigation_init(void)
 {
     lv_obj_add_event_cb(ui_SettingsBtn1, dash_nav_cb, LV_EVENT_CLICKED, (void *)&dash_nav_settings);
@@ -387,6 +481,7 @@ static void dash_navigation_init(void)
     lv_obj_add_event_cb(ui_RaceMainBtn, dash_nav_cb, LV_EVENT_CLICKED, (void *)&dash_nav_main);
     lv_obj_add_event_cb(ui_AnalogClusterBtn, dash_nav_cb, LV_EVENT_CLICKED, (void *)&dash_nav_analog_cluster);
     lv_obj_add_event_cb(ui_FullDataBtn, dash_nav_cb, LV_EVENT_CLICKED, (void *)&dash_nav_all_channels);
+    lv_obj_add_event_cb(ui_WarningBtn, dash_nav_cb, LV_EVENT_CLICKED, (void *)&dash_nav_warning);
 }
 
 // ---- AnalogClusterScreen ----
@@ -611,6 +706,211 @@ static void dash_all_channels_refresh(void)
     }
 }
 
+// ---- WarningScreen: a scrollable row per currently-active warning ----
+// SquareLine only exported one static instance of the row (ui_BackWarnContainer
+// and its children) - it's hidden at init and used purely as a style/layout
+// reference; dash_warning_row_create() below reconstructs the same layout so
+// any number of rows (one per active channel, worst case all 24) can be
+// pre-built once and then just shown/hidden/recolored per tick instead of
+// creating and destroying LVGL objects at runtime.
+#define DASH_MAX_WARNING_ROWS MAXXECU_CH_COUNT
+
+typedef struct {
+    lv_obj_t *root;   // colored back-container, peeks out as a colored edge
+    lv_obj_t *dot;
+    lv_obj_t *channel_label;
+    lv_obj_t *detail_label;
+    lv_obj_t *value_label;
+    lv_obj_t *range_label;
+} dash_warning_row_t;
+
+static dash_warning_row_t dash_warning_rows[DASH_MAX_WARNING_ROWS];
+
+static void dash_warning_row_create(lv_obj_t *parent, dash_warning_row_t *row)
+{
+    row->root = lv_obj_create(parent);
+    lv_obj_set_width(row->root, 987);
+    lv_obj_set_height(row->root, 78);
+    lv_obj_set_align(row->root, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(row->root, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_opa(row->root, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(row->root, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *panel = lv_obj_create(row->root);
+    lv_obj_set_width(panel, 980);
+    lv_obj_set_height(panel, 78);
+    lv_obj_set_x(panel, 5);
+    lv_obj_set_align(panel, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(panel, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(panel, lv_color_hex(0x121317), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(panel, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *row_flex = lv_obj_create(panel);
+    lv_obj_remove_style_all(row_flex);
+    lv_obj_set_width(row_flex, 909);
+    lv_obj_set_height(row_flex, 64);
+    lv_obj_set_x(row_flex, 7);
+    lv_obj_set_y(row_flex, 2);
+    lv_obj_set_align(row_flex, LV_ALIGN_CENTER);
+    lv_obj_set_flex_flow(row_flex, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(row_flex, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+    lv_obj_clear_flag(row_flex, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *left = lv_obj_create(row_flex);
+    lv_obj_remove_style_all(left);
+    lv_obj_set_width(left, 163);
+    lv_obj_set_height(left, 50);
+    lv_obj_set_align(left, LV_ALIGN_CENTER);
+    lv_obj_set_flex_flow(left, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(left, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+    lv_obj_clear_flag(left, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+
+    row->channel_label = lv_label_create(left);
+    lv_obj_set_width(row->channel_label, LV_SIZE_CONTENT);
+    lv_obj_set_height(row->channel_label, LV_SIZE_CONTENT);
+    lv_obj_set_y(row->channel_label, 1);
+    lv_obj_set_align(row->channel_label, LV_ALIGN_CENTER);
+    lv_obj_set_style_text_color(row->channel_label, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(row->channel_label, &ui_font_SairaSemiCondensedExtraBold24, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(row->channel_label, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    row->detail_label = lv_label_create(left);
+    lv_obj_set_width(row->detail_label, LV_SIZE_CONTENT);
+    lv_obj_set_height(row->detail_label, LV_SIZE_CONTENT);
+    lv_obj_set_y(row->detail_label, 13);
+    lv_obj_set_align(row->detail_label, LV_ALIGN_CENTER);
+    lv_obj_set_style_text_color(row->detail_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(row->detail_label, &ui_font_SairaSemiCondensedRegualar16, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_t *right = lv_obj_create(row_flex);
+    lv_obj_remove_style_all(right);
+    lv_obj_set_width(right, 224);
+    lv_obj_set_height(right, 67);
+    lv_obj_set_x(right, 17);
+    lv_obj_set_y(right, -36);
+    lv_obj_set_align(right, LV_ALIGN_CENTER);
+    lv_obj_set_flex_flow(right, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(right, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
+    lv_obj_clear_flag(right, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+
+    row->value_label = lv_label_create(right);
+    lv_obj_set_width(row->value_label, LV_SIZE_CONTENT);
+    lv_obj_set_height(row->value_label, LV_SIZE_CONTENT);
+    lv_obj_set_y(row->value_label, 1);
+    lv_obj_set_align(row->value_label, LV_ALIGN_CENTER);
+    lv_obj_set_style_text_font(row->value_label, &ui_font_SairaSemiCondensedExtraBold40, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    row->range_label = lv_label_create(right);
+    lv_obj_set_width(row->range_label, LV_SIZE_CONTENT);
+    lv_obj_set_height(row->range_label, LV_SIZE_CONTENT);
+    lv_obj_set_y(row->range_label, 13);
+    lv_obj_set_align(row->range_label, LV_ALIGN_CENTER);
+    lv_obj_set_style_text_color(row->range_label, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(row->range_label, &ui_font_SairaSemiCondensedRegualar16, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    row->dot = lv_obj_create(row->root);
+    lv_obj_remove_style_all(row->dot);
+    lv_obj_set_width(row->dot, 17);
+    lv_obj_set_height(row->dot, 17);
+    lv_obj_set_x(row->dot, -465);
+    lv_obj_set_align(row->dot, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(row->dot, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_radius(row->dot, 30, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(row->dot, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_add_flag(row->root, LV_OBJ_FLAG_HIDDEN); // shown/positioned by dash_warning_screen_refresh() below
+}
+
+static void dash_warning_screen_init(void)
+{
+    // SquareLine's static mockup row - superseded by dash_warning_rows[]
+    // below, kept only as the visual reference dash_warning_row_create()
+    // was copied from.
+    lv_obj_add_flag(ui_BackWarnContainer, LV_OBJ_FLAG_HIDDEN);
+
+    for (int i = 0; i < DASH_MAX_WARNING_ROWS; i++)
+    {
+        dash_warning_row_create(ui_Container74, &dash_warning_rows[i]);
+    }
+}
+
+// Rebuilds the visible row list from scratch each call: walks every channel
+// in enum order, and any channel currently CAUTION or WARNING claims the
+// next free row (so the list stays gap-free regardless of which channels
+// happen to be active), colored/labeled for its severity. Leftover
+// pre-built rows beyond the active count are hidden. Cheap in the common
+// case of 0-2 active warnings; worst case (~24) is still just label/style
+// writes on already-existing objects, no alloc/free.
+static void dash_warning_screen_refresh(void)
+{
+    int shown = 0;
+    int warning_count = 0;
+    int caution_count = 0;
+
+    for (int ch = 0; ch < MAXXECU_CH_COUNT; ch++)
+    {
+        dash_severity_t severity = dash_channel_severity(ch);
+        int rank = dash_severity_rank(severity);
+        if (rank == 0)
+        {
+            continue;
+        }
+        if (rank >= 2)
+        {
+            warning_count++;
+        }
+        else
+        {
+            caution_count++;
+        }
+
+        if (shown >= DASH_MAX_WARNING_ROWS)
+        {
+            continue; // can't happen (DASH_MAX_WARNING_ROWS == every channel), but stay safe if that ever changes
+        }
+
+        dash_warning_row_t *row = &dash_warning_rows[shown];
+        char buf[16];
+        // "{min}-{max} {symbol}" needs more room than a single formatted
+        // value (buf[16] above) - GCC's -Wformat-truncation can't prove
+        // three concatenated %s's fit in 16 given their individual worst
+        // cases, even though in practice they do.
+        char range_buf[40];
+
+        lv_label_set_text(row->channel_label, dash_channels[ch].name);
+        lv_label_set_text(row->detail_label, dash_severity_detail(severity));
+
+        dash_format_value((maxxecu_channel_id_t)ch, dash_latest[ch], buf, sizeof(buf));
+        lv_label_set_text(row->value_label, buf);
+
+        dash_format_range((maxxecu_channel_id_t)ch, range_buf, sizeof(range_buf));
+        lv_label_set_text(row->range_label, range_buf);
+
+        lv_color_t color = dash_severity_color(severity);
+        lv_obj_set_style_bg_color(row->root, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_color(row->dot, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+        lv_obj_set_style_text_color(row->value_label, color, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+        lv_obj_clear_flag(row->root, LV_OBJ_FLAG_HIDDEN);
+        shown++;
+    }
+
+    for (int i = shown; i < DASH_MAX_WARNING_ROWS; i++)
+    {
+        lv_obj_add_flag(dash_warning_rows[i].root, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    if (warning_count == 0 && caution_count == 0)
+    {
+        lv_label_set_text(ui_WarningsLabel, "NO ACTIVE WARNINGS \xC2\xB7 ALL SYSTEMS NORMAL");
+    }
+    else
+    {
+        lv_label_set_text_fmt(ui_WarningsLabel, "%d WARNING \xC2\xB7 %d CAUTION", warning_count, caution_count);
+    }
+}
+
 // lv_label_set_text_fmt() goes through LVGL's own printf, which has
 // LV_SPRINTF_USE_FLOAT off in this project's config - %f prints as a bare
 // "f". Format floats with the real libc snprintf instead (dash_format_value
@@ -686,6 +986,9 @@ static void dash_ui_timer_cb(lv_timer_t *timer)
 
     // AllChannelsScreen: all 24 rows, every tick.
     dash_all_channels_refresh();
+
+    // WarningScreen: rebuild the active-warning row list.
+    dash_warning_screen_refresh();
 }
 
 static void splash_slider_anim_cb(void *var, int32_t value)
@@ -768,6 +1071,9 @@ void app_main()
 
         // AllChannelsScreen: all 24 channels, one fixed row each.
         dash_all_channels_init();
+
+        // WarningScreen: pre-build the (hidden) per-channel warning rows.
+        dash_warning_screen_init();
 
         // Each screen's SettingsBtn -> Settings, Settings' 3 buttons -> screens.
         dash_navigation_init();
